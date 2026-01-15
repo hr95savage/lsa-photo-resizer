@@ -287,9 +287,12 @@ function updateOverlay() {
 // Crop box interaction
 cropBox.addEventListener('mousedown', (e) => {
     e.preventDefault();
+    e.stopPropagation();
     isDragging = true;
-    dragStart.x = e.clientX;
-    dragStart.y = e.clientY;
+    
+    const canvasRect = cropCanvas.getBoundingClientRect();
+    dragStart.x = e.clientX - canvasRect.left;
+    dragStart.y = e.clientY - canvasRect.top;
     
     const rect = cropBox.getBoundingClientRect();
     const handleSize = 20;
@@ -311,9 +314,13 @@ cropBox.addEventListener('mousedown', (e) => {
 document.addEventListener('mousemove', (e) => {
     if (!isDragging || !currentImage) return;
     
+    const canvasRect = cropCanvas.getBoundingClientRect();
+    const currentX = e.clientX - canvasRect.left;
+    const currentY = e.clientY - canvasRect.top;
+    
     const scale = cropCanvas.width / currentImage.width;
-    const deltaX = (e.clientX - dragStart.x) / scale;
-    const deltaY = (e.clientY - dragStart.y) / scale;
+    const deltaX = (currentX - dragStart.x) / scale;
+    const deltaY = (currentY - dragStart.y) / scale;
     
     if (dragType === 'box') {
         cropBoxData.x = Math.max(0, Math.min(currentImage.width - cropBoxData.width, cropBoxData.x + deltaX));
@@ -359,8 +366,10 @@ document.addEventListener('mousemove', (e) => {
     cropBoxData.width = minSize;
     cropBoxData.height = minSize;
     
-    dragStart.x = e.clientX;
-    dragStart.y = e.clientY;
+    // Update drag start position for next move
+    const canvasRect = cropCanvas.getBoundingClientRect();
+    dragStart.x = e.clientX - canvasRect.left;
+    dragStart.y = e.clientY - canvasRect.top;
     
     updateCropBox();
 });
