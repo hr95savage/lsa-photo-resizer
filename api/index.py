@@ -1,5 +1,5 @@
 # Vercel serverless function
-from flask import Flask, request, jsonify
+from flask import Flask, request as flask_request, jsonify
 from flask_cors import CORS
 from PIL import Image
 import io
@@ -82,17 +82,17 @@ def health():
 
 @app.route('/resize', methods=['POST', 'OPTIONS'])
 def resize_images():
-    if request.method == 'OPTIONS':
+    if flask_request.method == 'OPTIONS':
         response = jsonify({})
         response.headers.add('Access-Control-Allow-Origin', '*')
         response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
         response.headers.add('Access-Control-Allow-Methods', 'POST, OPTIONS')
         return response
     
-    if 'files' not in request.files:
+    if 'files' not in flask_request.files:
         return jsonify({'error': 'No files provided'}), 400
     
-    files = request.files.getlist('files')
+    files = flask_request.files.getlist('files')
     if not files or files[0].filename == '':
         return jsonify({'error': 'No files selected'}), 400
     
@@ -158,7 +158,59 @@ def resize_images():
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
-# Vercel requires this handler function
-# The function name must be exactly 'handler'
-def handler(request):
-    return app(request.environ, lambda status, headers: None)
+# Vercel Python runtime handler
+# Vercel automatically detects and uses this handler
+def handler(req):
+    # Vercel provides a request object, we need to convert it to WSGI format
+    # and then convert the Flask response back to Vercel format
+    from vercel import Response
+    
+    # Build WSGI environ from Vercel request
+    environ = {
+        'REQUEST_METHOD': req.method,
+        'PATH_INFO': req.path,
+        'QUERY_STRING': req.query_string or '',
+        'CONTENT_TYPE': req.headers.get('content-type', ''),
+        'CONTENT_LENGTH': str(len(req.body) if req.body else 0),
+        'SERVER_NAME': 'vercel',
+        'SERVER_PORT': '80',
+        'wsgi.version': (1, 0),
+        'wsgi.url_scheme': 'https',
+        'wsgi.input': io.BytesIO(req.body.encode() if isinstance(req.body, str) else (req.body or b'')),
+    }
+    
+    # Add request headers
+    for key, value in req.headers.items():
+        key_upper = key.upper().replace('-', '_')
+        if key_upper not in ('CONTENT_TYPE', 'CONTENT_LENGTH'):
+            environ[f'HTTP_{key_upper}'] = value
+    
+    # Call Flask app
+    response_data = []
+    status_code = [200]
+    headers_dict = {}
+    
+    def start_response(status, response_headers):
+        status_code[0] = int(status.split()[0])
+        for header_name, header_value in response_headers:
+            headers_dict[header_name] = header_value
+    
+    app_iter = app(environ, start_response)
+    
+    try:
+        for chunk in app_iter:
+            if isinstance(chunk, bytes):
+                response_data.append(chunk)
+            else:
+                response_data.append(chunk.encode('utf-8'))
+    finally:
+        if hasattr(app_iter, 'close'):
+            app_iter.close()
+    
+    body = b''.join(response_data).decode('utf-8')
+    
+    return Response(
+        body,
+        status=status_code[0],
+        headers=headers_dict
+    )
