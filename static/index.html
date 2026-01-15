@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LSA Photo Resizer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📸 LSA Photo Resizer</h1>
+            <p class="subtitle">Resize multiple photos to 1080×1080 PNG (under 5MB)</p>
+        </header>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-content">
+                <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="17 8 12 3 7 8"></polyline>
+                    <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+                <h2>Drag & Drop your photos here</h2>
+                <p>or</p>
+                <button class="btn-primary" id="selectFilesBtn">Select Files</button>
+                <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+                <p class="file-info">Supports: PNG, JPG, JPEG, GIF, BMP, WEBP, TIFF, HEIC</p>
+            </div>
+        </div>
+
+        <div class="file-list" id="fileList" style="display: none;">
+            <h3>Selected Files:</h3>
+            <ul id="fileListItems"></ul>
+        </div>
+
+        <div class="actions" id="actions" style="display: none;">
+            <button class="btn-primary" id="processBtn">Process Images</button>
+            <button class="btn-secondary" id="clearBtn">Clear</button>
+        </div>
+
+        <div class="progress-container" id="progressContainer" style="display: none;">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <p class="progress-text" id="progressText">Processing...</p>
+        </div>
+
+        <div class="results" id="results" style="display: none;">
+            <h3>Processing Complete!</h3>
+            <div class="results-info" id="resultsInfo"></div>
+            <div class="results-actions">
+                <button class="btn-primary" id="downloadZipBtn">Download All as ZIP</button>
+                <button class="btn-secondary" id="resetBtn">Process More</button>
+            </div>
+        </div>
+
+        <div class="error-message" id="errorMessage" style="display: none;"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
