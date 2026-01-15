@@ -367,9 +367,8 @@ document.addEventListener('mousemove', (e) => {
     cropBoxData.height = minSize;
     
     // Update drag start position for next move
-    const canvasRect = cropCanvas.getBoundingClientRect();
-    dragStart.x = e.clientX - canvasRect.left;
-    dragStart.y = e.clientY - canvasRect.top;
+    dragStart.x = currentX;
+    dragStart.y = currentY;
     
     updateCropBox();
 });
