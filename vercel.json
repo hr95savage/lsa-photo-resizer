@@ -12,11 +12,9 @@
       "dest": "/api/resize.py"
     },
     {
-      "handle": "filesystem"
-    },
-    {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/$1"
     }
-  ]
+  ],
+  "outputDirectory": "."
 }
