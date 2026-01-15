@@ -62,6 +62,11 @@ header h1 {
     pointer-events: none;
 }
 
+.upload-content button,
+.upload-content input {
+    pointer-events: auto;
+}
+
 .upload-icon {
     width: 80px;
     height: 80px;
@@ -128,8 +133,10 @@ header h1 {
 }
 
 #selectFilesBtn {
-    pointer-events: auto;
+    pointer-events: auto !important;
     margin-top: 20px;
+    position: relative;
+    z-index: 10;
 }
 
 .file-list {
