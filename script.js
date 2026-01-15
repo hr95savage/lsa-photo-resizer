@@ -235,10 +235,14 @@ function setupCropCanvas(img) {
     ctx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
     ctx.drawImage(img, 0, 0, cropCanvas.width, cropCanvas.height);
     
-    // Set container size
+    // Set container size to match canvas exactly
     const container = cropCanvas.parentElement;
     container.style.width = cropCanvas.width + 'px';
     container.style.height = cropCanvas.height + 'px';
+    
+    // Ensure overlay matches canvas size exactly
+    cropOverlay.style.width = cropCanvas.width + 'px';
+    cropOverlay.style.height = cropCanvas.height + 'px';
 }
 
 function updateCropBox() {
@@ -268,17 +272,23 @@ function updateOverlay() {
     const boxWidth = cropBoxData.width * scale;
     const boxHeight = cropBoxData.height * scale;
     
-    // Create overlay mask
-    const overlay = cropOverlay;
-    overlay.style.clipPath = `polygon(
+    // Ensure overlay size matches canvas
+    cropOverlay.style.width = cropCanvas.width + 'px';
+    cropOverlay.style.height = cropCanvas.height + 'px';
+    
+    // Create overlay mask using exact pixel values converted to percentages
+    const canvasWidth = cropCanvas.width;
+    const canvasHeight = cropCanvas.height;
+    
+    cropOverlay.style.clipPath = `polygon(
         0% 0%,
         0% 100%,
-        ${(boxX / cropCanvas.width) * 100}% 100%,
-        ${(boxX / cropCanvas.width) * 100}% ${(boxY / cropCanvas.height) * 100}%,
-        ${((boxX + boxWidth) / cropCanvas.width) * 100}% ${(boxY / cropCanvas.height) * 100}%,
-        ${((boxX + boxWidth) / cropCanvas.width) * 100}% ${((boxY + boxHeight) / cropCanvas.height) * 100}%,
-        ${(boxX / cropCanvas.width) * 100}% ${((boxY + boxHeight) / cropCanvas.height) * 100}%,
-        ${(boxX / cropCanvas.width) * 100}% 100%,
+        ${(boxX / canvasWidth) * 100}% 100%,
+        ${(boxX / canvasWidth) * 100}% ${(boxY / canvasHeight) * 100}%,
+        ${((boxX + boxWidth) / canvasWidth) * 100}% ${(boxY / canvasHeight) * 100}%,
+        ${((boxX + boxWidth) / canvasWidth) * 100}% ${((boxY + boxHeight) / canvasHeight) * 100}%,
+        ${(boxX / canvasWidth) * 100}% ${((boxY + boxHeight) / canvasHeight) * 100}%,
+        ${(boxX / canvasWidth) * 100}% 100%,
         100% 100%,
         100% 0%
     )`;
