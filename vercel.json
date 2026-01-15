@@ -12,8 +12,12 @@
       "dest": "/api/resize.py"
     },
     {
-      "src": "/(.*)",
-      "dest": "/$1"
+      "src": "/(.*\\.(html|css|js))",
+      "dest": "/public/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/public/index.html"
     }
   ]
 }
