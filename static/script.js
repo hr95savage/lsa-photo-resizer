@@ -191,27 +191,33 @@ function loadImageForCrop(index) {
             if (cropData[index]) {
                 cropBoxData = { ...cropData[index] };
             } else {
-                // Initialize with center crop
-                const scale = Math.min(cropCanvas.width / img.width, cropCanvas.height / img.height);
-                const displayWidth = img.width * scale;
-                const displayHeight = img.height * scale;
-                const offsetX = (cropCanvas.width - displayWidth) / 2;
-                const offsetY = (cropCanvas.height - displayHeight) / 2;
-                
-                // Calculate crop box in image coordinates
+                // Initialize with center crop - ensure it fits within image
                 const targetSize = 1080;
-                const imageScale = Math.max(targetSize / img.width, targetSize / img.height);
-                const cropWidth = targetSize / imageScale;
-                const cropHeight = targetSize / imageScale;
-                const cropX = (img.width - cropWidth) / 2;
-                const cropY = (img.height - cropHeight) / 2;
+                // Calculate the maximum square that fits in the image
+                const maxCropSize = Math.min(img.width, img.height);
+                // Use the smaller of target size or max possible size
+                const cropSize = Math.min(targetSize, maxCropSize);
+                
+                const cropX = (img.width - cropSize) / 2;
+                const cropY = (img.height - cropSize) / 2;
                 
                 cropBoxData = {
-                    x: cropX,
-                    y: cropY,
-                    width: cropWidth,
-                    height: cropHeight
+                    x: Math.max(0, cropX),
+                    y: Math.max(0, cropY),
+                    width: cropSize,
+                    height: cropSize
                 };
+                
+                // Final validation to ensure it's within bounds
+                cropBoxData.width = Math.min(cropBoxData.width, img.width - cropBoxData.x);
+                cropBoxData.height = Math.min(cropBoxData.height, img.height - cropBoxData.y);
+                // Ensure square
+                const minSize = Math.min(cropBoxData.width, cropBoxData.height);
+                cropBoxData.width = minSize;
+                cropBoxData.height = minSize;
+                // Re-adjust position if needed
+                cropBoxData.x = Math.max(0, Math.min(img.width - cropBoxData.width, cropBoxData.x));
+                cropBoxData.y = Math.max(0, Math.min(img.height - cropBoxData.height, cropBoxData.y));
             }
             
             updateCropBox();
@@ -248,23 +254,43 @@ function setupCropCanvas(img) {
 function updateCropBox() {
     if (!currentImage) return;
     
-    // Ensure crop box is within image bounds before displaying
+    // STRICT: Maximum crop size is the smaller dimension of the image
+    const maxCropSize = Math.min(currentImage.width, currentImage.height);
+    
+    // Ensure crop box size never exceeds image dimensions
+    cropBoxData.width = Math.min(cropBoxData.width, currentImage.width);
+    cropBoxData.height = Math.min(cropBoxData.height, currentImage.height);
+    cropBoxData.width = Math.min(cropBoxData.width, maxCropSize);
+    cropBoxData.height = Math.min(cropBoxData.height, maxCropSize);
+    
+    // Maintain square
+    const minSize = Math.min(cropBoxData.width, cropBoxData.height);
+    cropBoxData.width = minSize;
+    cropBoxData.height = minSize;
+    
+    // Calculate maximum allowed position
     const maxX = currentImage.width - cropBoxData.width;
     const maxY = currentImage.height - cropBoxData.height;
+    
+    // Clamp position to ensure entire box stays within image
     cropBoxData.x = Math.max(0, Math.min(maxX, cropBoxData.x));
     cropBoxData.y = Math.max(0, Math.min(maxY, cropBoxData.y));
     
-    // Ensure crop box size doesn't exceed image
-    const maxSize = Math.min(currentImage.width, currentImage.height);
-    cropBoxData.width = Math.min(cropBoxData.width, maxSize);
-    cropBoxData.height = Math.min(cropBoxData.height, maxSize);
-    
-    // Re-clamp position after size adjustment
+    // Final validation: ensure edges don't exceed image boundaries
     if (cropBoxData.x + cropBoxData.width > currentImage.width) {
-        cropBoxData.x = currentImage.width - cropBoxData.width;
+        cropBoxData.x = Math.max(0, currentImage.width - cropBoxData.width);
     }
     if (cropBoxData.y + cropBoxData.height > currentImage.height) {
-        cropBoxData.y = currentImage.height - cropBoxData.height;
+        cropBoxData.y = Math.max(0, currentImage.height - cropBoxData.height);
+    }
+    
+    // Absolute final check - if somehow size is still too large, force it
+    if (cropBoxData.width > currentImage.width || cropBoxData.height > currentImage.height) {
+        const forcedSize = Math.min(currentImage.width, currentImage.height);
+        cropBoxData.width = forcedSize;
+        cropBoxData.height = forcedSize;
+        cropBoxData.x = Math.max(0, (currentImage.width - forcedSize) / 2);
+        cropBoxData.y = Math.max(0, (currentImage.height - forcedSize) / 2);
     }
     
     const scale = cropCanvas.width / currentImage.width;
@@ -364,6 +390,9 @@ document.addEventListener('mousemove', (e) => {
     const originalWidth = cropBoxData.width;
     const originalHeight = cropBoxData.height;
     
+    // Maximum possible crop size is the smaller dimension of the image
+    const maxCropSize = Math.min(currentImage.width, currentImage.height);
+    
     if (dragType === 'box') {
         // Move the entire box
         cropBoxData.x = originalX + deltaX;
@@ -372,7 +401,7 @@ document.addEventListener('mousemove', (e) => {
         // Resize from northwest corner
         const newWidth = originalWidth - deltaX;
         const newHeight = originalHeight - deltaY;
-        const size = Math.min(newWidth, newHeight);
+        const size = Math.min(newWidth, newHeight, maxCropSize);
         cropBoxData.x = originalX + (originalWidth - size);
         cropBoxData.y = originalY + (originalHeight - size);
         cropBoxData.width = size;
@@ -381,7 +410,7 @@ document.addEventListener('mousemove', (e) => {
         // Resize from northeast corner
         const newWidth = originalWidth + deltaX;
         const newHeight = originalHeight - deltaY;
-        const size = Math.min(newWidth, newHeight);
+        const size = Math.min(newWidth, newHeight, maxCropSize);
         cropBoxData.y = originalY + (originalHeight - size);
         cropBoxData.width = size;
         cropBoxData.height = size;
@@ -389,7 +418,7 @@ document.addEventListener('mousemove', (e) => {
         // Resize from southwest corner
         const newWidth = originalWidth - deltaX;
         const newHeight = originalHeight + deltaY;
-        const size = Math.min(newWidth, newHeight);
+        const size = Math.min(newWidth, newHeight, maxCropSize);
         cropBoxData.x = originalX + (originalWidth - size);
         cropBoxData.width = size;
         cropBoxData.height = size;
@@ -397,25 +426,31 @@ document.addEventListener('mousemove', (e) => {
         // Resize from southeast corner
         const newWidth = originalWidth + deltaX;
         const newHeight = originalHeight + deltaY;
-        const size = Math.min(newWidth, newHeight);
+        const size = Math.min(newWidth, newHeight, maxCropSize);
         cropBoxData.width = size;
         cropBoxData.height = size;
     }
     
-    // Constrain crop box to image boundaries - CRITICAL
+    // STRICT: Ensure crop box size never exceeds image dimensions
+    cropBoxData.width = Math.min(cropBoxData.width, currentImage.width);
+    cropBoxData.height = Math.min(cropBoxData.height, currentImage.height);
+    cropBoxData.width = Math.min(cropBoxData.width, maxCropSize);
+    cropBoxData.height = Math.min(cropBoxData.height, maxCropSize);
+    
+    // Maintain square aspect ratio
+    const minSize = Math.min(cropBoxData.width, cropBoxData.height);
+    cropBoxData.width = minSize;
+    cropBoxData.height = minSize;
+    
+    // Calculate maximum allowed position based on current size
     const maxX = currentImage.width - cropBoxData.width;
     const maxY = currentImage.height - cropBoxData.height;
     
-    // Clamp position
+    // Clamp position to ensure entire box stays within image
     cropBoxData.x = Math.max(0, Math.min(maxX, cropBoxData.x));
     cropBoxData.y = Math.max(0, Math.min(maxY, cropBoxData.y));
     
-    // Ensure crop box doesn't exceed image dimensions
-    const maxSize = Math.min(currentImage.width, currentImage.height);
-    cropBoxData.width = Math.min(cropBoxData.width, maxSize);
-    cropBoxData.height = Math.min(cropBoxData.height, maxSize);
-    
-    // If box was constrained, adjust position to keep it within bounds
+    // Final validation: ensure right and bottom edges don't exceed image
     if (cropBoxData.x + cropBoxData.width > currentImage.width) {
         cropBoxData.x = currentImage.width - cropBoxData.width;
     }
@@ -423,14 +458,17 @@ document.addEventListener('mousemove', (e) => {
         cropBoxData.y = currentImage.height - cropBoxData.height;
     }
     
-    // Maintain square aspect ratio
-    const minSize = Math.min(cropBoxData.width, cropBoxData.height);
-    cropBoxData.width = minSize;
-    cropBoxData.height = minSize;
-    
-    // Final bounds check after maintaining square
-    cropBoxData.x = Math.max(0, Math.min(currentImage.width - cropBoxData.width, cropBoxData.x));
-    cropBoxData.y = Math.max(0, Math.min(currentImage.height - cropBoxData.height, cropBoxData.y));
+    // One more size check to be absolutely sure
+    if (cropBoxData.width > currentImage.width) {
+        cropBoxData.width = currentImage.width;
+        cropBoxData.height = currentImage.width;
+        cropBoxData.x = 0;
+    }
+    if (cropBoxData.height > currentImage.height) {
+        cropBoxData.height = currentImage.height;
+        cropBoxData.width = currentImage.height;
+        cropBoxData.y = 0;
+    }
     
     // Update drag start position for next move
     dragStart.x = currentX;
