@@ -9,19 +9,11 @@
   "routes": [
     {
       "src": "/api/resize",
-      "dest": "api/resize.py"
+      "dest": "/api/resize.py"
     },
     {
-      "src": "/static/(.*)",
-      "dest": "static/$1"
-    },
-    {
-      "src": "/(.*\\.(html|css|js|png|jpg|jpeg|gif|svg|ico))",
-      "dest": "static/$1"
-    },
-    {
-      "src": "/",
-      "dest": "static/index.html"
+      "src": "/(.*)",
+      "dest": "/$1"
     }
   ]
 }
