@@ -3,6 +3,7 @@ from flask_cors import CORS
 from PIL import Image
 import io
 import os
+import base64
 from werkzeug.utils import secure_filename
 import zipfile
 
@@ -23,10 +24,10 @@ os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024):
+def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024, crop_data=None):
     """
     Resize image to target size and compress to ensure it's under max_size.
-    Uses center crop to maintain square aspect ratio.
+    Uses provided crop_data if available, otherwise uses center crop.
     """
     # Convert to RGB if necessary (for formats like RGBA, P, etc.)
     if image.mode in ('RGBA', 'LA', 'P'):
@@ -40,24 +41,31 @@ def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024):
     elif image.mode != 'RGB':
         image = image.convert('RGB')
     
-    # Calculate resize dimensions maintaining aspect ratio, then crop to square
     width, height = image.size
     target_width, target_height = target_size
     
-    # Calculate scaling to cover the target size
-    scale = max(target_width / width, target_height / height)
-    new_width = int(width * scale)
-    new_height = int(height * scale)
+    # Apply crop if provided
+    if crop_data:
+        # Crop using provided coordinates
+        left = max(0, int(crop_data['x']))
+        top = max(0, int(crop_data['y']))
+        right = min(width, int(crop_data['x'] + crop_data['width']))
+        bottom = min(height, int(crop_data['y'] + crop_data['height']))
+        image = image.crop((left, top, right, bottom))
+    else:
+        # Default center crop behavior
+        scale = max(target_width / width, target_height / height)
+        new_width = int(width * scale)
+        new_height = int(height * scale)
+        image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        left = (new_width - target_width) // 2
+        top = (new_height - target_height) // 2
+        right = left + target_width
+        bottom = top + target_height
+        image = image.crop((left, top, right, bottom))
     
-    # Resize
-    image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-    
-    # Center crop to exact target size
-    left = (new_width - target_width) // 2
-    top = (new_height - target_height) // 2
-    right = left + target_width
-    bottom = top + target_height
-    image = image.crop((left, top, right, bottom))
+    # Resize to exact target size
+    image = image.resize(target_size, Image.Resampling.LANCZOS)
     
     # Try different compression strategies
     output = io.BytesIO()
@@ -116,15 +124,31 @@ def resize_images():
     processed_files = []
     errors = []
     
-    for file in files:
+    # Get crop data from form
+    crop_data_list = []
+    for i in range(len(files)):
+        crop_key = f'crop_{i}'
+        if crop_key in request.form:
+            try:
+                import json
+                crop_data_list.append(json.loads(request.form[crop_key]))
+            except:
+                crop_data_list.append(None)
+        else:
+            crop_data_list.append(None)
+    
+    for index, file in enumerate(files):
         if file and allowed_file(file.filename):
             try:
                 # Read image
                 image_data = file.read()
                 image = Image.open(io.BytesIO(image_data))
                 
+                # Get crop data for this image
+                crop_data = crop_data_list[index] if index < len(crop_data_list) else None
+                
                 # Resize and compress
-                output = resize_and_compress(image, TARGET_SIZE, MAX_SIZE)
+                output = resize_and_compress(image, TARGET_SIZE, MAX_SIZE, crop_data)
                 
                 # Save processed image
                 filename = secure_filename(file.filename)
@@ -154,14 +178,18 @@ def resize_images():
                 'error': 'File type not allowed'
             })
     
-    # Create a zip file with all processed images
-    zip_path = None
+    # Create a zip file in memory with all processed images
+    zip_data = None
     if processed_files:
-        zip_path = os.path.join(OUTPUT_FOLDER, 'resized_images.zip')
-        with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
             for file_info in processed_files:
                 file_path = os.path.join(OUTPUT_FOLDER, file_info['processed_name'])
-                zipf.write(file_path, file_info['processed_name'])
+                if os.path.exists(file_path):
+                    with open(file_path, 'rb') as f:
+                        zipf.writestr(file_info['processed_name'], f.read())
+        zip_buffer.seek(0)
+        zip_data = base64.b64encode(zip_buffer.getvalue()).decode('utf-8')
     
     return jsonify({
         'success': True,
@@ -169,7 +197,7 @@ def resize_images():
         'errors': len(errors),
         'files': processed_files,
         'error_details': errors,
-        'zip_available': zip_path is not None
+        'zip_data': zip_data
     })
 
 @app.route('/download/<filename>', methods=['GET'])

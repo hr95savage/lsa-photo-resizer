@@ -14,7 +14,7 @@ TARGET_SIZE = (1080, 1080)
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024):
+def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024, crop_data=None):
     if image.mode in ('RGBA', 'LA', 'P'):
         background = Image.new('RGB', image.size, (255, 255, 255))
         if image.mode == 'P':
@@ -27,14 +27,26 @@ def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024):
     
     width, height = image.size
     target_width, target_height = target_size
-    scale = max(target_width / width, target_height / height)
-    new_width = int(width * scale)
-    new_height = int(height * scale)
     
-    image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-    left = (new_width - target_width) // 2
-    top = (new_height - target_height) // 2
-    image = image.crop((left, top, left + target_width, top + target_height))
+    # Apply crop if provided
+    if crop_data:
+        left = max(0, int(crop_data['x']))
+        top = max(0, int(crop_data['y']))
+        right = min(width, int(crop_data['x'] + crop_data['width']))
+        bottom = min(height, int(crop_data['y'] + crop_data['height']))
+        image = image.crop((left, top, right, bottom))
+    else:
+        # Default center crop
+        scale = max(target_width / width, target_height / height)
+        new_width = int(width * scale)
+        new_height = int(height * scale)
+        image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        left = (new_width - target_width) // 2
+        top = (new_height - target_height) // 2
+        image = image.crop((left, top, left + target_width, top + target_height))
+    
+    # Resize to exact target size
+    image = image.resize(target_size, Image.Resampling.LANCZOS)
     
     output = io.BytesIO()
     image.save(output, format='PNG', optimize=True)
@@ -127,16 +139,32 @@ def handler(req):
                     headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
                 )
             
+            # Get crop data from form
+            crop_data_list = []
+            for i in range(len(files)):
+                crop_key = f'crop_{i}'
+                if crop_key in flask_request.form:
+                    try:
+                        crop_data_list.append(json.loads(flask_request.form[crop_key]))
+                    except:
+                        crop_data_list.append(None)
+                else:
+                    crop_data_list.append(None)
+            
             processed_files = []
             errors = []
             file_data_list = []
             
-            for file in files:
+            for index, file in enumerate(files):
                 if file and allowed_file(file.filename):
                     try:
                         image_data = file.read()
                         image = Image.open(io.BytesIO(image_data))
-                        output = resize_and_compress(image, TARGET_SIZE, MAX_SIZE)
+                        
+                        # Get crop data for this image
+                        crop_data = crop_data_list[index] if index < len(crop_data_list) else None
+                        
+                        output = resize_and_compress(image, TARGET_SIZE, MAX_SIZE, crop_data)
                         output_data = output.getvalue()
                         file_size = len(output_data)
                         

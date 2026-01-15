@@ -34,8 +34,30 @@
         </div>
 
         <div class="actions" id="actions" style="display: none;">
-            <button class="btn-primary" id="processBtn">Process Images</button>
+            <button class="btn-primary" id="processBtn">Crop Images</button>
             <button class="btn-secondary" id="clearBtn">Clear</button>
+        </div>
+
+        <div class="crop-container" id="cropContainer" style="display: none;">
+            <h3 id="cropTitle">Crop Image <span id="cropCounter">1</span> of <span id="cropTotal">1</span></h3>
+            <div class="crop-wrapper">
+                <div class="crop-image-container" id="cropImageContainer">
+                    <canvas id="cropCanvas"></canvas>
+                    <div class="crop-overlay" id="cropOverlay"></div>
+                    <div class="crop-box" id="cropBox">
+                        <div class="crop-handle crop-handle-nw"></div>
+                        <div class="crop-handle crop-handle-ne"></div>
+                        <div class="crop-handle crop-handle-sw"></div>
+                        <div class="crop-handle crop-handle-se"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="crop-controls">
+                <button class="btn-secondary" id="cropPrevBtn" style="display: none;">Previous</button>
+                <button class="btn-primary" id="cropNextBtn">Next</button>
+                <button class="btn-primary" id="cropFinishBtn" style="display: none;">Finish & Process</button>
+            </div>
+            <p class="crop-instructions">Drag the crop box to adjust the 1080×1080 area, or drag the corners to resize</p>
         </div>
 
         <div class="progress-container" id="progressContainer" style="display: none;">
