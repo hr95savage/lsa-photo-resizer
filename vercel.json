@@ -4,6 +4,10 @@
     {
       "src": "api/resize.py",
       "use": "@vercel/python"
+    },
+    {
+      "src": "api/index.py",
+      "use": "@vercel/python"
     }
   ],
   "routes": [
@@ -12,8 +16,12 @@
       "dest": "/api/resize.py"
     },
     {
-      "src": "/(.*)",
+      "src": "/(.*\\.(css|js))",
       "dest": "/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/api/index.py"
     }
   ]
 }
