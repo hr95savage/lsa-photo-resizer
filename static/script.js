@@ -1,6 +1,11 @@
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
 const selectFilesBtn = document.getElementById('selectFilesBtn');
+
+// Debug: Check if elements exist
+if (!uploadArea || !fileInput || !selectFilesBtn) {
+    console.error('Missing elements:', { uploadArea, fileInput, selectFilesBtn });
+}
 const fileList = document.getElementById('fileList');
 const fileListItems = document.getElementById('fileListItems');
 const actions = document.getElementById('actions');
@@ -44,11 +49,20 @@ const API_BASE = window.location.hostname === 'localhost'
     ? 'http://localhost:5001' 
     : '/api';
 
-// File selection
+// File selection - use mousedown to ensure it fires before any other handlers
+selectFilesBtn.addEventListener('mousedown', (e) => {
+    e.stopPropagation();
+});
+
 selectFilesBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     e.preventDefault();
-    fileInput.click();
+    console.log('Button clicked, opening file picker');
+    if (fileInput) {
+        fileInput.click();
+    } else {
+        console.error('fileInput is null!');
+    }
 });
 
 // Make entire upload area clickable (but not when clicking the button)
@@ -58,7 +72,12 @@ uploadArea.addEventListener('click', (e) => {
         return;
     }
     // Trigger file input when clicking anywhere else in the upload area
-    fileInput.click();
+    console.log('Upload area clicked, opening file picker');
+    if (fileInput) {
+        fileInput.click();
+    } else {
+        console.error('fileInput is null!');
+    }
 });
 
 fileInput.addEventListener('change', (e) => {
