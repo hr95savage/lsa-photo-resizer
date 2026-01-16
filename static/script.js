@@ -1,36 +1,44 @@
-const uploadArea = document.getElementById('uploadArea');
-const fileInput = document.getElementById('fileInput');
-const selectFilesBtn = document.getElementById('selectFilesBtn');
+// Wait for DOM to be ready
+let uploadArea, fileInput, selectFilesBtn, fileList, fileListItems, actions, processBtn, clearBtn;
+let progressContainer, progressFill, progressText, results, resultsInfo, downloadZipBtn, resetBtn, errorMessage;
+let cropContainer, cropCanvas, cropOverlay, cropBox, cropTitle, cropCounter, cropTotal;
+let cropPrevBtn, cropNextBtn, cropFinishBtn;
 
-// Debug: Check if elements exist
-if (!uploadArea || !fileInput || !selectFilesBtn) {
-    console.error('Missing elements:', { uploadArea, fileInput, selectFilesBtn });
+function initElements() {
+    uploadArea = document.getElementById('uploadArea');
+    fileInput = document.getElementById('fileInput');
+    selectFilesBtn = document.getElementById('selectFilesBtn');
+    fileList = document.getElementById('fileList');
+    fileListItems = document.getElementById('fileListItems');
+    actions = document.getElementById('actions');
+    processBtn = document.getElementById('processBtn');
+    clearBtn = document.getElementById('clearBtn');
+    progressContainer = document.getElementById('progressContainer');
+    progressFill = document.getElementById('progressFill');
+    progressText = document.getElementById('progressText');
+    results = document.getElementById('results');
+    resultsInfo = document.getElementById('resultsInfo');
+    downloadZipBtn = document.getElementById('downloadZipBtn');
+    resetBtn = document.getElementById('resetBtn');
+    errorMessage = document.getElementById('errorMessage');
+    
+    // Cropping elements
+    cropContainer = document.getElementById('cropContainer');
+    cropCanvas = document.getElementById('cropCanvas');
+    cropOverlay = document.getElementById('cropOverlay');
+    cropBox = document.getElementById('cropBox');
+    cropTitle = document.getElementById('cropTitle');
+    cropCounter = document.getElementById('cropCounter');
+    cropTotal = document.getElementById('cropTotal');
+    cropPrevBtn = document.getElementById('cropPrevBtn');
+    cropNextBtn = document.getElementById('cropNextBtn');
+    cropFinishBtn = document.getElementById('cropFinishBtn');
+    
+    // Debug: Check if elements exist
+    if (!uploadArea || !fileInput || !selectFilesBtn) {
+        console.error('Missing elements:', { uploadArea, fileInput, selectFilesBtn });
+    }
 }
-const fileList = document.getElementById('fileList');
-const fileListItems = document.getElementById('fileListItems');
-const actions = document.getElementById('actions');
-const processBtn = document.getElementById('processBtn');
-const clearBtn = document.getElementById('clearBtn');
-const progressContainer = document.getElementById('progressContainer');
-const progressFill = document.getElementById('progressFill');
-const progressText = document.getElementById('progressText');
-const results = document.getElementById('results');
-const resultsInfo = document.getElementById('resultsInfo');
-const downloadZipBtn = document.getElementById('downloadZipBtn');
-const resetBtn = document.getElementById('resetBtn');
-const errorMessage = document.getElementById('errorMessage');
-
-// Cropping elements
-const cropContainer = document.getElementById('cropContainer');
-const cropCanvas = document.getElementById('cropCanvas');
-const cropOverlay = document.getElementById('cropOverlay');
-const cropBox = document.getElementById('cropBox');
-const cropTitle = document.getElementById('cropTitle');
-const cropCounter = document.getElementById('cropCounter');
-const cropTotal = document.getElementById('cropTotal');
-const cropPrevBtn = document.getElementById('cropPrevBtn');
-const cropNextBtn = document.getElementById('cropNextBtn');
-const cropFinishBtn = document.getElementById('cropFinishBtn');
 
 let selectedFiles = [];
 let processedData = null;
@@ -50,56 +58,58 @@ const API_BASE = window.location.hostname === 'localhost'
     : '/api';
 
 // File selection
-function openFilePicker() {
-    console.log('openFilePicker called');
-    if (fileInput) {
-        fileInput.click();
-    } else {
-        console.error('fileInput element not found!');
-    }
-}
-
-selectFilesBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    e.preventDefault();
-    openFilePicker();
-});
-
-// Also handle mousedown as backup
-selectFilesBtn.addEventListener('mousedown', (e) => {
-    e.stopPropagation();
-});
-
-// Make entire upload area clickable (but not when clicking the button)
-uploadArea.addEventListener('click', (e) => {
-    // Don't trigger if clicking the button (it has its own handler)
-    if (e.target === selectFilesBtn || e.target.closest('#selectFilesBtn') || e.target.closest('button')) {
+function setupFileUpload() {
+    if (!selectFilesBtn || !fileInput || !uploadArea) {
+        console.error('File upload elements not found!');
         return;
     }
-    // Trigger file input when clicking anywhere else in the upload area
-    openFilePicker();
-});
+    
+    // Label already triggers file input, but add click handler as backup
+    selectFilesBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        // Label will handle the click, but ensure it works
+        if (fileInput) {
+            fileInput.click();
+        }
+    });
+    
+    // Make entire upload area clickable (but not when clicking the button/label)
+    uploadArea.addEventListener('click', (e) => {
+        // Don't trigger if clicking the label/button
+        if (e.target === selectFilesBtn || e.target.closest('#selectFilesBtn') || e.target.closest('label')) {
+            return;
+        }
+        // Trigger file input when clicking anywhere else in the upload area
+        if (fileInput) {
+            fileInput.click();
+        }
+    });
+}
 
-fileInput.addEventListener('change', (e) => {
-    handleFiles(Array.from(e.target.files));
-});
-
-// Drag and drop
-uploadArea.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    uploadArea.classList.add('dragover');
-});
-
-uploadArea.addEventListener('dragleave', () => {
-    uploadArea.classList.remove('dragover');
-});
-
-uploadArea.addEventListener('drop', (e) => {
-    e.preventDefault();
-    uploadArea.classList.remove('dragover');
-    const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
-    handleFiles(files);
-});
+function setupDragAndDrop() {
+    if (!fileInput || !uploadArea) return;
+    
+    fileInput.addEventListener('change', (e) => {
+        handleFiles(Array.from(e.target.files));
+    });
+    
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+    });
+    
+    uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+    });
+    
+    uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
+        handleFiles(files);
+    });
+}
 
 function handleFiles(files) {
     selectedFiles = [...selectedFiles, ...files];
@@ -174,7 +184,9 @@ function showError(message) {
 }
 
 // Start cropping process
-processBtn.addEventListener('click', () => {
+function setupProcessButton() {
+    if (!processBtn) return;
+    processBtn.addEventListener('click', () => {
     if (selectedFiles.length === 0) {
         showError('Please select at least one file');
         return;
@@ -791,8 +803,30 @@ resetBtn.addEventListener('click', () => {
     fileInput.value = '';
 });
 
-// Clear
-clearBtn.addEventListener('click', () => {
+// Initialize everything when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+        initElements();
+        setupFileUpload();
+        setupDragAndDrop();
+        setupAllEventListeners();
+    });
+} else {
+    // DOM is already ready
+    initElements();
+    setupFileUpload();
+    setupDragAndDrop();
+    setupAllEventListeners();
+}
+
+function setupAllEventListeners() {
+    if (!processBtn || !clearBtn || !resetBtn || !downloadZipBtn) {
+        console.error('Some elements not found for event listeners');
+        return;
+    }
+    
+    // Process button
+    processBtn.addEventListener('click', () => {
     selectedFiles = [];
     cropData = [];
     updateFileList();
