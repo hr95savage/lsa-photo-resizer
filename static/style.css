@@ -64,7 +64,9 @@ header h1 {
 
 .upload-content button,
 .upload-content input {
-    pointer-events: auto;
+    pointer-events: auto !important;
+    z-index: 10;
+    position: relative;
 }
 
 .upload-icon {

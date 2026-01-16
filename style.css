@@ -64,7 +64,9 @@ header h1 {
 
 .upload-content button,
 .upload-content input {
-    pointer-events: auto;
+    pointer-events: auto !important;
+    z-index: 10;
+    position: relative;
 }
 
 .upload-icon {
@@ -299,6 +301,7 @@ header h1 {
     left: 0;
     background: rgba(0, 0, 0, 0.5);
     pointer-events: none;
+    /* Will be positioned and sized by JavaScript to match imageRect */
 }
 
 .crop-box {
