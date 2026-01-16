@@ -1,3 +1,6 @@
+// #region agent log
+fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1',message:'Script loading - checking DOM ready state',data:{readyState:document.readyState},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+// #endregion
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
 const selectFilesBtn = document.getElementById('selectFilesBtn');
@@ -26,6 +29,9 @@ const cropTotal = document.getElementById('cropTotal');
 const cropPrevBtn = document.getElementById('cropPrevBtn');
 const cropNextBtn = document.getElementById('cropNextBtn');
 const cropFinishBtn = document.getElementById('cropFinishBtn');
+// #region agent log
+fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:29',message:'DOM elements retrieved',data:{uploadArea:!!uploadArea,fileInput:!!fileInput,selectFilesBtn:!!selectFilesBtn,fileList:!!fileList,fileListItems:!!fileListItems},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+// #endregion
 
 let selectedFiles = [];
 let processedData = null;
@@ -45,17 +51,54 @@ const API_BASE = window.location.hostname === 'localhost'
     : '/api';
 
 // File selection - with null checks
+// #region agent log
+fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:48',message:'Setting up file selection listeners',data:{selectFilesBtn:!!selectFilesBtn,fileInput:!!fileInput},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+// #endregion
 if (selectFilesBtn && fileInput) {
-    selectFilesBtn.addEventListener('click', () => {
-        fileInput.click();
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:51',message:'Adding click listener to selectFilesBtn',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    selectFilesBtn.addEventListener('click', (e) => {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:54',message:'selectFilesBtn clicked',data:{fileInputExists:!!fileInput},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+        try {
+            fileInput.click();
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:58',message:'fileInput.click() called',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+        } catch (err) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:61',message:'Error calling fileInput.click()',data:{error:err.message,stack:err.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+        }
     });
 
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:67',message:'Adding change listener to fileInput',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
     fileInput.addEventListener('change', (e) => {
-        handleFiles(Array.from(e.target.files));
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:70',message:'fileInput change event fired',data:{fileCount:e.target.files?e.target.files.length:0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
+        try {
+            handleFiles(Array.from(e.target.files));
+        } catch (err) {
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:75',message:'Error in handleFiles',data:{error:err.message,stack:err.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+            // #endregion
+        }
     });
+} else {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:80',message:'selectFilesBtn or fileInput is null - listeners NOT attached',data:{selectFilesBtn:!!selectFilesBtn,fileInput:!!fileInput},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
 }
 
 // Drag and drop - with null checks
+// #region agent log
+fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:103',message:'Setting up drag and drop listeners',data:{uploadArea:!!uploadArea},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+// #endregion
 if (uploadArea) {
     uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -69,16 +112,39 @@ if (uploadArea) {
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadArea.classList.remove('dragover');
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:115',message:'Files dropped on uploadArea',data:{fileCount:e.dataTransfer.files.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
         const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
         handleFiles(files);
     });
+} else {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:121',message:'uploadArea is null - drag listeners NOT attached',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+    // #endregion
 }
 
 function handleFiles(files) {
-    selectedFiles = [...selectedFiles, ...files];
-    updateFileList();
-    showActions();
-    hideError();
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:87',message:'handleFiles called',data:{fileCount:files.length,fileNames:files.map(f=>f.name)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
+    try {
+        selectedFiles = [...selectedFiles, ...files];
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:91',message:'Files added to selectedFiles',data:{totalFiles:selectedFiles.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
+        updateFileList();
+        showActions();
+        hideError();
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:95',message:'handleFiles completed successfully',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
+    } catch (err) {
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:98',message:'Error in handleFiles execution',data:{error:err.message,stack:err.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+        // #endregion
+        throw err;
+    }
 }
 
 function updateFileList() {
@@ -449,20 +515,39 @@ cropBox.addEventListener('mousedown', (e) => {
     dragStart.x = e.clientX - containerRect.left;
     dragStart.y = e.clientY - containerRect.top;
     
-    const rect = cropBox.getBoundingClientRect();
-    const handleSize = 20;
-    
-    // Check which handle was clicked
-    if (e.offsetX < handleSize && e.offsetY < handleSize) {
-        dragType = 'nw';
-    } else if (e.offsetX > rect.width - handleSize && e.offsetY < handleSize) {
-        dragType = 'ne';
-    } else if (e.offsetX < handleSize && e.offsetY > rect.height - handleSize) {
-        dragType = 'sw';
-    } else if (e.offsetX > rect.width - handleSize && e.offsetY > rect.height - handleSize) {
-        dragType = 'se';
+    // Check if a handle was clicked directly
+    const handle = e.target.closest('.crop-handle');
+    if (handle) {
+        // Determine which handle based on class name
+        if (handle.classList.contains('crop-handle-nw')) {
+            dragType = 'nw';
+        } else if (handle.classList.contains('crop-handle-ne')) {
+            dragType = 'ne';
+        } else if (handle.classList.contains('crop-handle-sw')) {
+            dragType = 'sw';
+        } else if (handle.classList.contains('crop-handle-se')) {
+            dragType = 'se';
+        } else {
+            dragType = 'box';
+        }
     } else {
-        dragType = 'box';
+        // Check if click is near a corner (for clicking on crop box near handles)
+        const rect = cropBox.getBoundingClientRect();
+        const handleSize = 20;
+        const localX = e.clientX - rect.left;
+        const localY = e.clientY - rect.top;
+        
+        if (localX < handleSize && localY < handleSize) {
+            dragType = 'nw';
+        } else if (localX > rect.width - handleSize && localY < handleSize) {
+            dragType = 'ne';
+        } else if (localX < handleSize && localY > rect.height - handleSize) {
+            dragType = 'sw';
+        } else if (localX > rect.width - handleSize && localY > rect.height - handleSize) {
+            dragType = 'se';
+        } else {
+            dragType = 'box';
+        }
     }
 });
 
@@ -501,30 +586,41 @@ document.addEventListener('mousemove', (e) => {
         cropBoxData.y = originalY + deltaY;
     } else {
         // Resize from corner - maintain 1:1 aspect ratio
-        // Use the larger delta to maintain square
+        // Use the larger of X or Y delta to maintain square
         const delta = Math.max(Math.abs(deltaX), Math.abs(deltaY));
         const signX = deltaX >= 0 ? 1 : -1;
         const signY = deltaY >= 0 ? 1 : -1;
         
         if (dragType === 'nw') {
-            // Resize from northwest corner
-            cropBoxData.width = originalWidth - (delta * signX);
+            // Resize from northwest corner: dragging down-right increases size
+            // Average the X and Y movement for diagonal resizing
+            const avgDelta = (deltaX + deltaY) / 2;
+            cropBoxData.width = originalWidth - avgDelta;
             cropBoxData.height = cropBoxData.width; // Lock to square
             cropBoxData.x = originalX + (originalWidth - cropBoxData.width);
             cropBoxData.y = originalY + (originalHeight - cropBoxData.height);
         } else if (dragType === 'ne') {
-            // Resize from northeast corner
-            cropBoxData.width = originalWidth + (delta * signX);
+            // Resize from northeast corner: dragging down-left increases size
+            // For NE, dragging left (negative deltaX) or down (positive deltaY) increases size
+            // When dragging down-left: deltaX is negative, deltaY is positive
+            // We want: negative deltaX + positive deltaY = increase, so use (-deltaX + deltaY)
+            const avgDelta = (-deltaX + deltaY) / 2;
+            cropBoxData.width = originalWidth + avgDelta;
             cropBoxData.height = cropBoxData.width; // Lock to square
             cropBoxData.y = originalY + (originalHeight - cropBoxData.height);
         } else if (dragType === 'sw') {
-            // Resize from southwest corner
-            cropBoxData.width = originalWidth - (delta * signX);
+            // Resize from southwest corner: dragging up-right increases size
+            // For SW, dragging right (positive deltaX) or up (negative deltaY) increases size
+            // When dragging up-right: deltaX is positive, deltaY is negative
+            // We want: positive deltaX - negative deltaY = increase, so use (deltaX - deltaY)
+            const avgDelta = (deltaX - deltaY) / 2;
+            cropBoxData.width = originalWidth + avgDelta;
             cropBoxData.height = cropBoxData.width; // Lock to square
             cropBoxData.x = originalX + (originalWidth - cropBoxData.width);
         } else if (dragType === 'se') {
-            // Resize from southeast corner
-            cropBoxData.width = originalWidth + (delta * signX);
+            // Resize from southeast corner: dragging up-left increases size
+            const avgDelta = (-deltaX - deltaY) / 2;
+            cropBoxData.width = originalWidth - avgDelta;
             cropBoxData.height = cropBoxData.width; // Lock to square
         }
     }
@@ -554,7 +650,7 @@ document.addEventListener('mousemove', (e) => {
     }
     
     // One more size check to be absolutely sure (source pixels) - maintain square
-    const maxSize = Math.min(currentImage.width, currentImage.height);
+    // Reuse maxSize from above (line 600)
     if (cropBoxData.width > maxSize) {
         cropBoxData.width = maxSize;
         cropBoxData.height = maxSize;
