@@ -121,11 +121,25 @@ def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024, c
     output.seek(0)
     return output
 
-def handler(req):
+def handler(request):
     from vercel import Response
     
-    # Get method - Vercel Python runtime uses req.method directly
-    method = getattr(req, 'method', 'GET').upper()
+    # Debug: Log request attributes
+    req_attrs = dir(request)
+    method = None
+    
+    # Try different ways to get the method
+    if hasattr(request, 'method'):
+        method = request.method
+    elif hasattr(request, 'get'):
+        method = request.get('method', 'GET')
+    elif isinstance(request, dict):
+        method = request.get('method', 'GET')
+    else:
+        # Try to get from headers or other attributes
+        method = getattr(request, 'httpMethod', None) or getattr(request, 'requestMethod', None) or 'GET'
+    
+    method = str(method).upper() if method else 'GET'
     
     if method == 'OPTIONS':
         return Response(
@@ -140,7 +154,14 @@ def handler(req):
     
     if method != 'POST':
         return Response(
-            json.dumps({'error': f'Method not allowed. Received: {method}. Expected: POST'}),
+            json.dumps({
+                'error': f'Method not allowed. Received: {method}. Expected: POST',
+                'debug': {
+                    'request_type': str(type(request)),
+                    'has_method': hasattr(request, 'method'),
+                    'attributes': [attr for attr in req_attrs if not attr.startswith('_')][:10]
+                }
+            }),
             status=405,
             headers={
                 'Content-Type': 'application/json',
@@ -149,25 +170,43 @@ def handler(req):
             }
         )
     
+    # Use request as req for the rest of the code
+    req = request
+    
     try:
         # Parse multipart form data from request
-        # Handle both req.headers dict and req.headers.get()
+        # Handle different request object structures
         headers = getattr(req, 'headers', {})
-        if hasattr(headers, 'get'):
+        if isinstance(headers, dict):
+            content_type = headers.get('content-type', '') or headers.get('Content-Type', '')
+        elif hasattr(headers, 'get'):
             content_type = headers.get('content-type', '') or headers.get('Content-Type', '')
         else:
-            content_type = str(headers.get('content-type', '') if 'content-type' in headers else headers.get('Content-Type', ''))
+            content_type = ''
         
         if 'multipart/form-data' not in content_type:
             return Response(
-                json.dumps({'error': 'Content-Type must be multipart/form-data'}),
+                json.dumps({'error': f'Content-Type must be multipart/form-data. Received: {content_type}'}),
                 status=400,
                 headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
             )
         
-        # For Vercel, we need to parse the multipart data
-        # This is a simplified version - in production you'd use a proper multipart parser
-        body = req.body if isinstance(req.body, bytes) else req.body.encode() if req.body else b''
+        # Get request body
+        body = None
+        if hasattr(req, 'body'):
+            body = req.body
+        elif hasattr(req, 'get'):
+            body = req.get('body', b'')
+        elif isinstance(req, dict):
+            body = req.get('body', b'')
+        
+        if body is None:
+            body = b''
+        if isinstance(body, str):
+            body = body.encode()
+        
+        # Get path for Flask context
+        path = getattr(req, 'path', '/api/resize')
         
         # Use Flask's request parsing if available, otherwise parse manually
         from flask import Flask, request as flask_request
@@ -175,8 +214,8 @@ def handler(req):
         
         app_temp = Flask(__name__)
         with app_temp.test_request_context(
-            path=req.path,
-            method=req.method,
+            path=path,
+            method=method,
             data=body,
             content_type=content_type
         ):
