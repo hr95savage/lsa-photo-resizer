@@ -49,35 +49,35 @@ const API_BASE = window.location.hostname === 'localhost'
     ? 'http://localhost:5001' 
     : '/api';
 
-// File selection - use mousedown to ensure it fires before any other handlers
-selectFilesBtn.addEventListener('mousedown', (e) => {
-    e.stopPropagation();
-});
+// File selection
+function openFilePicker() {
+    console.log('openFilePicker called');
+    if (fileInput) {
+        fileInput.click();
+    } else {
+        console.error('fileInput element not found!');
+    }
+}
 
 selectFilesBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     e.preventDefault();
-    console.log('Button clicked, opening file picker');
-    if (fileInput) {
-        fileInput.click();
-    } else {
-        console.error('fileInput is null!');
-    }
+    openFilePicker();
+});
+
+// Also handle mousedown as backup
+selectFilesBtn.addEventListener('mousedown', (e) => {
+    e.stopPropagation();
 });
 
 // Make entire upload area clickable (but not when clicking the button)
 uploadArea.addEventListener('click', (e) => {
     // Don't trigger if clicking the button (it has its own handler)
-    if (e.target === selectFilesBtn || e.target.closest('#selectFilesBtn')) {
+    if (e.target === selectFilesBtn || e.target.closest('#selectFilesBtn') || e.target.closest('button')) {
         return;
     }
     // Trigger file input when clicking anywhere else in the upload area
-    console.log('Upload area clicked, opening file picker');
-    if (fileInput) {
-        fileInput.click();
-    } else {
-        console.error('fileInput is null!');
-    }
+    openFilePicker();
 });
 
 fileInput.addEventListener('change', (e) => {
