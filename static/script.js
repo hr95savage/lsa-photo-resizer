@@ -290,34 +290,30 @@ function setupCropCanvas(img) {
     ctx.clearRect(0, 0, cropCanvas.width, cropCanvas.height);
     ctx.drawImage(img, 0, 0, cropCanvas.width, cropCanvas.height);
     
-    // Set container size to match canvas exactly
+    // Set container size to match canvas exactly (no letterboxing)
     const container = cropCanvas.parentElement;
     container.style.width = cropCanvas.width + 'px';
     container.style.height = cropCanvas.height + 'px';
     
-    // Ensure overlay matches canvas size exactly
-    cropOverlay.style.width = cropCanvas.width + 'px';
-    cropOverlay.style.height = cropCanvas.height + 'px';
-    
-    // Calculate the actual image content rect (where image is rendered)
-    // Since we draw the image to fill the entire canvas, imageRect = canvas rect
-    // But we need to account for any CSS scaling or container padding
-    // Force a reflow to get actual rendered dimensions
+    // Force a reflow to ensure layout is complete
     void container.offsetHeight;
     
-    const containerBounds = container.getBoundingClientRect();
+    // Calculate the actual image content rect
+    // The canvas is drawn to fill the entire canvas element
+    // imageRect represents where the image is rendered, relative to the container
+    // Since container matches canvas size, imageRect = (0, 0, canvas.width, canvas.height)
     const canvasBounds = cropCanvas.getBoundingClientRect();
+    const containerBounds = container.getBoundingClientRect();
     
-    // The imageRect is the actual displayed canvas area
-    // In our case, canvas fills container, so imageRect = canvas bounds relative to container
+    // Store container dimensions
     containerRect = {
         width: containerBounds.width,
-        height: containerBounds.height,
-        padding: 10 // From CSS padding
+        height: containerBounds.height
     };
     
-    // Image is drawn to fill the entire canvas, so imageRect starts at (0, 0) relative to container
-    // and has the size of the canvas (accounting for any CSS scaling)
+    // ImageRect: the actual rendered image area relative to container
+    // Canvas fills container, so imageRect starts at (0, 0) and matches canvas size
+    // Use actual rendered dimensions to account for any CSS scaling
     imageRect = {
         x: 0,
         y: 0,
@@ -325,14 +321,7 @@ function setupCropCanvas(img) {
         height: canvasBounds.height
     };
     
-    // If canvas is scaled by CSS, adjust imageRect
-    const canvasScaleX = canvasBounds.width / cropCanvas.width;
-    const canvasScaleY = canvasBounds.height / cropCanvas.height;
-    
-    // For now, we ensure canvas matches container, so scale should be 1:1
-    // But we'll use the actual rendered dimensions to be safe
-    imageRect.width = canvasBounds.width;
-    imageRect.height = canvasBounds.height;
+    // Ensure overlay is positioned and sized correctly (will be updated in updateOverlay)
 }
 
 function updateCropBox() {
