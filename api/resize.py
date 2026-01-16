@@ -35,18 +35,34 @@ def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024, c
         right = min(width, int(crop_data['x'] + crop_data['width']))
         bottom = min(height, int(crop_data['y'] + crop_data['height']))
         image = image.crop((left, top, right, bottom))
+        # Resize to exact target size
+        image = image.resize(target_size, Image.Resampling.LANCZOS)
     else:
-        # Default center crop
-        scale = max(target_width / width, target_height / height)
-        new_width = int(width * scale)
-        new_height = int(height * scale)
-        image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-        left = (new_width - target_width) // 2
-        top = (new_height - target_height) // 2
-        image = image.crop((left, top, left + target_width, top + target_height))
-    
-    # Resize to exact target size
-    image = image.resize(target_size, Image.Resampling.LANCZOS)
+        # Default: Fill height, then crop width (scale to fill top and bottom)
+        scale = target_height / height
+        scaled_width = width * scale
+        
+        if scaled_width >= target_width:
+            # Image is wide enough - crop width, use full height
+            crop_width = target_width / scale
+            crop_height = height
+            left = (width - crop_width) / 2
+            top = 0
+        else:
+            # Image is not wide enough - use full width, crop height
+            crop_width = width
+            crop_height = target_height / scale
+            left = 0
+            top = (height - crop_height) / 2
+        
+        left = max(0, int(left))
+        top = max(0, int(top))
+        right = min(width, int(left + crop_width))
+        bottom = min(height, int(top + crop_height))
+        image = image.crop((left, top, right, bottom))
+        
+        # Resize to exact target size
+        image = image.resize(target_size, Image.Resampling.LANCZOS)
     
     output = io.BytesIO()
     image.save(output, format='PNG', optimize=True)

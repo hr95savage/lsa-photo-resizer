@@ -52,20 +52,36 @@ def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024, c
         right = min(width, int(crop_data['x'] + crop_data['width']))
         bottom = min(height, int(crop_data['y'] + crop_data['height']))
         image = image.crop((left, top, right, bottom))
+        # Resize to exact target size
+        image = image.resize(target_size, Image.Resampling.LANCZOS)
     else:
-        # Default center crop behavior
-        scale = max(target_width / width, target_height / height)
-        new_width = int(width * scale)
-        new_height = int(height * scale)
-        image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
-        left = (new_width - target_width) // 2
-        top = (new_height - target_height) // 2
-        right = left + target_width
-        bottom = top + target_height
+        # Default: Fill height, then crop width (scale to fill top and bottom)
+        # Scale to fill the height (1080px)
+        scale = target_height / height
+        scaled_width = width * scale
+        
+        if scaled_width >= target_width:
+            # Image is wide enough - crop width, use full height
+            crop_width = target_width / scale  # Convert back to original coordinates
+            crop_height = height  # Use full height
+            left = (width - crop_width) / 2  # Center horizontally
+            top = 0  # Start at top
+        else:
+            # Image is not wide enough - use full width, crop height
+            crop_width = width  # Use full width
+            crop_height = target_height / scale  # Height needed
+            left = 0  # Start at left
+            top = (height - crop_height) / 2  # Center vertically
+        
+        # Crop the image
+        left = max(0, int(left))
+        top = max(0, int(top))
+        right = min(width, int(left + crop_width))
+        bottom = min(height, int(top + crop_height))
         image = image.crop((left, top, right, bottom))
-    
-    # Resize to exact target size
-    image = image.resize(target_size, Image.Resampling.LANCZOS)
+        
+        # Resize to exact target size
+        image = image.resize(target_size, Image.Resampling.LANCZOS)
     
     # Try different compression strategies
     output = io.BytesIO()

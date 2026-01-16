@@ -191,33 +191,45 @@ function loadImageForCrop(index) {
             if (cropData[index]) {
                 cropBoxData = { ...cropData[index] };
             } else {
-                // Initialize with center crop - ensure it fits within image
+                // Initialize with "fill height" crop - scale to fill top and bottom
                 const targetSize = 1080;
-                // Calculate the maximum square that fits in the image
-                const maxCropSize = Math.min(img.width, img.height);
-                // Use the smaller of target size or max possible size
-                const cropSize = Math.min(targetSize, maxCropSize);
                 
-                const cropX = (img.width - cropSize) / 2;
-                const cropY = (img.height - cropSize) / 2;
+                // Scale image to fill the height (1080px)
+                // This means: scale = targetSize / img.height
+                const scale = targetSize / img.height;
+                const scaledWidth = img.width * scale;
+                const scaledHeight = targetSize; // Always 1080
+                
+                // If scaled width is wider than target, crop from sides (center crop horizontally)
+                // If scaled width is narrower, we'd need to extend, but we'll just use the full width
+                let cropWidth, cropHeight, cropX, cropY;
+                
+                if (scaledWidth >= targetSize) {
+                    // Image is wide enough - crop width to 1080, use full height
+                    cropWidth = targetSize / scale; // Convert back to original image coordinates
+                    cropHeight = img.height; // Use full height
+                    cropX = (img.width - cropWidth) / 2; // Center horizontally
+                    cropY = 0; // Start at top
+                } else {
+                    // Image is not wide enough - use full width, crop height
+                    cropWidth = img.width; // Use full width
+                    cropHeight = targetSize / scale; // Height needed to get 1080px after scaling
+                    cropX = 0; // Start at left
+                    cropY = (img.height - cropHeight) / 2; // Center vertically
+                }
+                
+                // Ensure crop fits within image bounds
+                cropWidth = Math.min(cropWidth, img.width);
+                cropHeight = Math.min(cropHeight, img.height);
+                cropX = Math.max(0, Math.min(img.width - cropWidth, cropX));
+                cropY = Math.max(0, Math.min(img.height - cropHeight, cropY));
                 
                 cropBoxData = {
-                    x: Math.max(0, cropX),
-                    y: Math.max(0, cropY),
-                    width: cropSize,
-                    height: cropSize
+                    x: cropX,
+                    y: cropY,
+                    width: cropWidth,
+                    height: cropHeight
                 };
-                
-                // Final validation to ensure it's within bounds
-                cropBoxData.width = Math.min(cropBoxData.width, img.width - cropBoxData.x);
-                cropBoxData.height = Math.min(cropBoxData.height, img.height - cropBoxData.y);
-                // Ensure square
-                const minSize = Math.min(cropBoxData.width, cropBoxData.height);
-                cropBoxData.width = minSize;
-                cropBoxData.height = minSize;
-                // Re-adjust position if needed
-                cropBoxData.x = Math.max(0, Math.min(img.width - cropBoxData.width, cropBoxData.x));
-                cropBoxData.y = Math.max(0, Math.min(img.height - cropBoxData.height, cropBoxData.y));
             }
             
             updateCropBox();
@@ -254,19 +266,9 @@ function setupCropCanvas(img) {
 function updateCropBox() {
     if (!currentImage) return;
     
-    // STRICT: Maximum crop size is the smaller dimension of the image
-    const maxCropSize = Math.min(currentImage.width, currentImage.height);
-    
     // Ensure crop box size never exceeds image dimensions
     cropBoxData.width = Math.min(cropBoxData.width, currentImage.width);
     cropBoxData.height = Math.min(cropBoxData.height, currentImage.height);
-    cropBoxData.width = Math.min(cropBoxData.width, maxCropSize);
-    cropBoxData.height = Math.min(cropBoxData.height, maxCropSize);
-    
-    // Maintain square
-    const minSize = Math.min(cropBoxData.width, cropBoxData.height);
-    cropBoxData.width = minSize;
-    cropBoxData.height = minSize;
     
     // Calculate maximum allowed position
     const maxX = currentImage.width - cropBoxData.width;
@@ -284,13 +286,14 @@ function updateCropBox() {
         cropBoxData.y = Math.max(0, currentImage.height - cropBoxData.height);
     }
     
-    // Absolute final check - if somehow size is still too large, force it
-    if (cropBoxData.width > currentImage.width || cropBoxData.height > currentImage.height) {
-        const forcedSize = Math.min(currentImage.width, currentImage.height);
-        cropBoxData.width = forcedSize;
-        cropBoxData.height = forcedSize;
-        cropBoxData.x = Math.max(0, (currentImage.width - forcedSize) / 2);
-        cropBoxData.y = Math.max(0, (currentImage.height - forcedSize) / 2);
+    // Ensure crop box doesn't exceed image dimensions
+    if (cropBoxData.width > currentImage.width) {
+        cropBoxData.width = currentImage.width;
+        cropBoxData.x = 0;
+    }
+    if (cropBoxData.height > currentImage.height) {
+        cropBoxData.height = currentImage.height;
+        cropBoxData.y = 0;
     }
     
     const scale = cropCanvas.width / currentImage.width;
@@ -390,57 +393,37 @@ document.addEventListener('mousemove', (e) => {
     const originalWidth = cropBoxData.width;
     const originalHeight = cropBoxData.height;
     
-    // Maximum possible crop size is the smaller dimension of the image
-    const maxCropSize = Math.min(currentImage.width, currentImage.height);
-    
     if (dragType === 'box') {
-        // Move the entire box
+        // Move the entire box - allow horizontal and vertical movement
         cropBoxData.x = originalX + deltaX;
         cropBoxData.y = originalY + deltaY;
     } else if (dragType === 'nw') {
-        // Resize from northwest corner
-        const newWidth = originalWidth - deltaX;
-        const newHeight = originalHeight - deltaY;
-        const size = Math.min(newWidth, newHeight, maxCropSize);
-        cropBoxData.x = originalX + (originalWidth - size);
-        cropBoxData.y = originalY + (originalHeight - size);
-        cropBoxData.width = size;
-        cropBoxData.height = size;
+        // Resize from northwest corner - adjust both width and height
+        cropBoxData.width = originalWidth - deltaX;
+        cropBoxData.height = originalHeight - deltaY;
+        cropBoxData.x = originalX + deltaX;
+        cropBoxData.y = originalY + deltaY;
     } else if (dragType === 'ne') {
         // Resize from northeast corner
-        const newWidth = originalWidth + deltaX;
-        const newHeight = originalHeight - deltaY;
-        const size = Math.min(newWidth, newHeight, maxCropSize);
-        cropBoxData.y = originalY + (originalHeight - size);
-        cropBoxData.width = size;
-        cropBoxData.height = size;
+        cropBoxData.width = originalWidth + deltaX;
+        cropBoxData.height = originalHeight - deltaY;
+        cropBoxData.y = originalY + deltaY;
     } else if (dragType === 'sw') {
         // Resize from southwest corner
-        const newWidth = originalWidth - deltaX;
-        const newHeight = originalHeight + deltaY;
-        const size = Math.min(newWidth, newHeight, maxCropSize);
-        cropBoxData.x = originalX + (originalWidth - size);
-        cropBoxData.width = size;
-        cropBoxData.height = size;
+        cropBoxData.width = originalWidth - deltaX;
+        cropBoxData.height = originalHeight + deltaY;
+        cropBoxData.x = originalX + deltaX;
     } else if (dragType === 'se') {
         // Resize from southeast corner
-        const newWidth = originalWidth + deltaX;
-        const newHeight = originalHeight + deltaY;
-        const size = Math.min(newWidth, newHeight, maxCropSize);
-        cropBoxData.width = size;
-        cropBoxData.height = size;
+        cropBoxData.width = originalWidth + deltaX;
+        cropBoxData.height = originalHeight + deltaY;
     }
     
     // STRICT: Ensure crop box size never exceeds image dimensions
     cropBoxData.width = Math.min(cropBoxData.width, currentImage.width);
     cropBoxData.height = Math.min(cropBoxData.height, currentImage.height);
-    cropBoxData.width = Math.min(cropBoxData.width, maxCropSize);
-    cropBoxData.height = Math.min(cropBoxData.height, maxCropSize);
-    
-    // Maintain square aspect ratio
-    const minSize = Math.min(cropBoxData.width, cropBoxData.height);
-    cropBoxData.width = minSize;
-    cropBoxData.height = minSize;
+    cropBoxData.width = Math.max(1, cropBoxData.width); // Minimum 1px
+    cropBoxData.height = Math.max(1, cropBoxData.height); // Minimum 1px
     
     // Calculate maximum allowed position based on current size
     const maxX = currentImage.width - cropBoxData.width;
