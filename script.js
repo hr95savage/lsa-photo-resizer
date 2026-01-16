@@ -191,31 +191,50 @@ function loadImageForCrop(index) {
             if (cropData[index]) {
                 cropBoxData = { ...cropData[index] };
             } else {
-                // Initialize with "fill height" crop - scale to fill top and bottom
+                // Smart Fill: Auto-detect orientation and fill accordingly
                 const targetSize = 1080;
+                const isLandscape = img.width >= img.height;
                 
-                // Scale image to fill the height (1080px)
-                // This means: scale = targetSize / img.height
-                const scale = targetSize / img.height;
-                const scaledWidth = img.width * scale;
-                const scaledHeight = targetSize; // Always 1080
-                
-                // If scaled width is wider than target, crop from sides (center crop horizontally)
-                // If scaled width is narrower, we'd need to extend, but we'll just use the full width
                 let cropWidth, cropHeight, cropX, cropY;
                 
-                if (scaledWidth >= targetSize) {
-                    // Image is wide enough - crop width to 1080, use full height
-                    cropWidth = targetSize / scale; // Convert back to original image coordinates
-                    cropHeight = img.height; // Use full height
-                    cropX = (img.width - cropWidth) / 2; // Center horizontally
-                    cropY = 0; // Start at top
+                if (isLandscape) {
+                    // Landscape: Fill height, crop width (center crop horizontally)
+                    // Scale to fill height (1080px)
+                    const scale = targetSize / img.height;
+                    const scaledWidth = img.width * scale;
+                    
+                    if (scaledWidth >= targetSize) {
+                        // Wide enough - crop width, use full height
+                        cropWidth = targetSize / scale; // Convert back to original coordinates
+                        cropHeight = img.height; // Use full height
+                        cropX = (img.width - cropWidth) / 2; // Center horizontally
+                        cropY = 0; // Start at top
+                    } else {
+                        // Not wide enough - use full width, crop height (shouldn't happen for landscape, but handle it)
+                        cropWidth = img.width;
+                        cropHeight = targetSize / scale;
+                        cropX = 0;
+                        cropY = (img.height - cropHeight) / 2;
+                    }
                 } else {
-                    // Image is not wide enough - use full width, crop height
-                    cropWidth = img.width; // Use full width
-                    cropHeight = targetSize / scale; // Height needed to get 1080px after scaling
-                    cropX = 0; // Start at left
-                    cropY = (img.height - cropHeight) / 2; // Center vertically
+                    // Portrait: Fill width, crop height (center crop vertically)
+                    // Scale to fill width (1080px)
+                    const scale = targetSize / img.width;
+                    const scaledHeight = img.height * scale;
+                    
+                    if (scaledHeight >= targetSize) {
+                        // Tall enough - crop height, use full width
+                        cropHeight = targetSize / scale; // Convert back to original coordinates
+                        cropWidth = img.width; // Use full width
+                        cropX = 0; // Start at left
+                        cropY = (img.height - cropHeight) / 2; // Center vertically
+                    } else {
+                        // Not tall enough - use full height, crop width (shouldn't happen for portrait, but handle it)
+                        cropHeight = img.height;
+                        cropWidth = targetSize / scale;
+                        cropX = (img.width - cropWidth) / 2;
+                        cropY = 0;
+                    }
                 }
                 
                 // Ensure crop fits within image bounds

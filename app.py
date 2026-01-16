@@ -55,23 +55,43 @@ def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024, c
         # Resize to exact target size
         image = image.resize(target_size, Image.Resampling.LANCZOS)
     else:
-        # Default: Fill height, then crop width (scale to fill top and bottom)
-        # Scale to fill the height (1080px)
-        scale = target_height / height
-        scaled_width = width * scale
+        # Smart Fill: Auto-detect orientation and fill accordingly
+        is_landscape = width >= height
         
-        if scaled_width >= target_width:
-            # Image is wide enough - crop width, use full height
-            crop_width = target_width / scale  # Convert back to original coordinates
-            crop_height = height  # Use full height
-            left = (width - crop_width) / 2  # Center horizontally
-            top = 0  # Start at top
+        if is_landscape:
+            # Landscape: Fill height, crop width (center crop horizontally)
+            scale = target_height / height
+            scaled_width = width * scale
+            
+            if scaled_width >= target_width:
+                # Wide enough - crop width, use full height
+                crop_width = target_width / scale
+                crop_height = height
+                left = (width - crop_width) / 2
+                top = 0
+            else:
+                # Not wide enough - use full width, crop height
+                crop_width = width
+                crop_height = target_height / scale
+                left = 0
+                top = (height - crop_height) / 2
         else:
-            # Image is not wide enough - use full width, crop height
-            crop_width = width  # Use full width
-            crop_height = target_height / scale  # Height needed
-            left = 0  # Start at left
-            top = (height - crop_height) / 2  # Center vertically
+            # Portrait: Fill width, crop height (center crop vertically)
+            scale = target_width / width
+            scaled_height = height * scale
+            
+            if scaled_height >= target_height:
+                # Tall enough - crop height, use full width
+                crop_height = target_height / scale
+                crop_width = width
+                left = 0
+                top = (height - crop_height) / 2
+            else:
+                # Not tall enough - use full height, crop width
+                crop_height = height
+                crop_width = target_width / scale
+                left = (width - crop_width) / 2
+                top = 0
         
         # Crop the image
         left = max(0, int(left))
