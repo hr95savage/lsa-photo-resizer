@@ -64,10 +64,7 @@ header h1 {
 
 .upload-content button,
 .upload-content input {
-    pointer-events: auto !important;
-    z-index: 100;
-    position: relative;
-    cursor: pointer;
+    pointer-events: auto;
 }
 
 .upload-icon {
@@ -140,14 +137,6 @@ header h1 {
     margin-top: 20px;
     position: relative;
     z-index: 10;
-    cursor: pointer;
-}
-
-/* Make label look like button */
-label#selectFilesBtn {
-    display: inline-block;
-    text-align: center;
-    user-select: none;
 }
 
 .file-list {

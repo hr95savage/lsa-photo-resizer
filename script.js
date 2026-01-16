@@ -1,44 +1,31 @@
-// Wait for DOM to be ready
-let uploadArea, fileInput, selectFilesBtn, fileList, fileListItems, actions, processBtn, clearBtn;
-let progressContainer, progressFill, progressText, results, resultsInfo, downloadZipBtn, resetBtn, errorMessage;
-let cropContainer, cropCanvas, cropOverlay, cropBox, cropTitle, cropCounter, cropTotal;
-let cropPrevBtn, cropNextBtn, cropFinishBtn;
+const uploadArea = document.getElementById('uploadArea');
+const fileInput = document.getElementById('fileInput');
+const selectFilesBtn = document.getElementById('selectFilesBtn');
+const fileList = document.getElementById('fileList');
+const fileListItems = document.getElementById('fileListItems');
+const actions = document.getElementById('actions');
+const processBtn = document.getElementById('processBtn');
+const clearBtn = document.getElementById('clearBtn');
+const progressContainer = document.getElementById('progressContainer');
+const progressFill = document.getElementById('progressFill');
+const progressText = document.getElementById('progressText');
+const results = document.getElementById('results');
+const resultsInfo = document.getElementById('resultsInfo');
+const downloadZipBtn = document.getElementById('downloadZipBtn');
+const resetBtn = document.getElementById('resetBtn');
+const errorMessage = document.getElementById('errorMessage');
 
-function initElements() {
-    uploadArea = document.getElementById('uploadArea');
-    fileInput = document.getElementById('fileInput');
-    selectFilesBtn = document.getElementById('selectFilesBtn');
-    fileList = document.getElementById('fileList');
-    fileListItems = document.getElementById('fileListItems');
-    actions = document.getElementById('actions');
-    processBtn = document.getElementById('processBtn');
-    clearBtn = document.getElementById('clearBtn');
-    progressContainer = document.getElementById('progressContainer');
-    progressFill = document.getElementById('progressFill');
-    progressText = document.getElementById('progressText');
-    results = document.getElementById('results');
-    resultsInfo = document.getElementById('resultsInfo');
-    downloadZipBtn = document.getElementById('downloadZipBtn');
-    resetBtn = document.getElementById('resetBtn');
-    errorMessage = document.getElementById('errorMessage');
-    
-    // Cropping elements
-    cropContainer = document.getElementById('cropContainer');
-    cropCanvas = document.getElementById('cropCanvas');
-    cropOverlay = document.getElementById('cropOverlay');
-    cropBox = document.getElementById('cropBox');
-    cropTitle = document.getElementById('cropTitle');
-    cropCounter = document.getElementById('cropCounter');
-    cropTotal = document.getElementById('cropTotal');
-    cropPrevBtn = document.getElementById('cropPrevBtn');
-    cropNextBtn = document.getElementById('cropNextBtn');
-    cropFinishBtn = document.getElementById('cropFinishBtn');
-    
-    // Debug: Check if elements exist
-    if (!uploadArea || !fileInput || !selectFilesBtn) {
-        console.error('Missing elements:', { uploadArea, fileInput, selectFilesBtn });
-    }
-}
+// Cropping elements
+const cropContainer = document.getElementById('cropContainer');
+const cropCanvas = document.getElementById('cropCanvas');
+const cropOverlay = document.getElementById('cropOverlay');
+const cropBox = document.getElementById('cropBox');
+const cropTitle = document.getElementById('cropTitle');
+const cropCounter = document.getElementById('cropCounter');
+const cropTotal = document.getElementById('cropTotal');
+const cropPrevBtn = document.getElementById('cropPrevBtn');
+const cropNextBtn = document.getElementById('cropNextBtn');
+const cropFinishBtn = document.getElementById('cropFinishBtn');
 
 let selectedFiles = [];
 let processedData = null;
@@ -57,52 +44,28 @@ const API_BASE = window.location.hostname === 'localhost'
     ? 'http://localhost:5001' 
     : '/api';
 
-// File selection
-function setupFileUpload() {
-    if (!selectFilesBtn || !fileInput || !uploadArea) {
-        console.error('File upload elements not found!');
-        return;
-    }
-    
-    // Label already triggers file input, but add click handler as backup
-    selectFilesBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        // Label will handle the click, but ensure it works
-        if (fileInput) {
-            fileInput.click();
-        }
+// File selection - with null checks
+if (selectFilesBtn && fileInput) {
+    selectFilesBtn.addEventListener('click', () => {
+        fileInput.click();
     });
-    
-    // Make entire upload area clickable (but not when clicking the button/label)
-    uploadArea.addEventListener('click', (e) => {
-        // Don't trigger if clicking the label/button
-        if (e.target === selectFilesBtn || e.target.closest('#selectFilesBtn') || e.target.closest('label')) {
-            return;
-        }
-        // Trigger file input when clicking anywhere else in the upload area
-        if (fileInput) {
-            fileInput.click();
-        }
-    });
-}
 
-function setupDragAndDrop() {
-    if (!fileInput || !uploadArea) return;
-    
     fileInput.addEventListener('change', (e) => {
         handleFiles(Array.from(e.target.files));
     });
-    
-    // Drag and drop
+}
+
+// Drag and drop - with null checks
+if (uploadArea) {
     uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
         uploadArea.classList.add('dragover');
     });
-    
+
     uploadArea.addEventListener('dragleave', () => {
         uploadArea.classList.remove('dragover');
     });
-    
+
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadArea.classList.remove('dragover');
@@ -119,6 +82,8 @@ function handleFiles(files) {
 }
 
 function updateFileList() {
+    if (!fileList || !fileListItems) return;
+    
     if (selectedFiles.length === 0) {
         fileList.style.display = 'none';
         return;
@@ -167,11 +132,11 @@ function formatFileSize(bytes) {
 }
 
 function showActions() {
-    actions.style.display = 'block';
+    if (actions) actions.style.display = 'block';
 }
 
 function hideActions() {
-    actions.style.display = 'none';
+    if (actions) actions.style.display = 'none';
 }
 
 function hideError() {
@@ -184,28 +149,28 @@ function showError(message) {
 }
 
 // Start cropping process
-function setupProcessButton() {
-    if (!processBtn) return;
+if (processBtn) {
     processBtn.addEventListener('click', () => {
-    if (selectedFiles.length === 0) {
-        showError('Please select at least one file');
-        return;
-    }
-    
-    // Initialize crop data array
-    cropData = selectedFiles.map(() => null);
-    currentCropIndex = 0;
-    
-    // Hide other UI elements
-    hideActions();
-    hideError();
-    hideResults();
-    hideProgress();
-    
-    // Show cropping interface
-    showCropInterface();
-    loadImageForCrop(0);
-});
+        if (selectedFiles.length === 0) {
+            showError('Please select at least one file');
+            return;
+        }
+        
+        // Initialize crop data array
+        cropData = selectedFiles.map(() => null);
+        currentCropIndex = 0;
+        
+        // Hide other UI elements
+        hideActions();
+        hideError();
+        hideResults();
+        hideProgress();
+        
+        // Show cropping interface
+        showCropInterface();
+        loadImageForCrop(0);
+    });
+}
 
 function showCropInterface() {
     cropContainer.style.display = 'block';
@@ -620,27 +585,32 @@ function updateCropButtons() {
     cropFinishBtn.style.display = currentCropIndex === selectedFiles.length - 1 ? 'inline-block' : 'none';
 }
 
-cropPrevBtn.addEventListener('click', () => {
-    // Save current crop data
-    cropData[currentCropIndex] = { ...cropBoxData };
-    
-    // Load previous image
-    if (currentCropIndex > 0) {
-        loadImageForCrop(currentCropIndex - 1);
-    }
-});
+if (cropPrevBtn) {
+    cropPrevBtn.addEventListener('click', () => {
+        // Save current crop data
+        cropData[currentCropIndex] = { ...cropBoxData };
+        
+        // Load previous image
+        if (currentCropIndex > 0) {
+            loadImageForCrop(currentCropIndex - 1);
+        }
+    });
+}
 
-cropNextBtn.addEventListener('click', () => {
-    // Save current crop data
-    cropData[currentCropIndex] = { ...cropBoxData };
-    
-    // Load next image
-    if (currentCropIndex < selectedFiles.length - 1) {
-        loadImageForCrop(currentCropIndex + 1);
-    }
-});
+if (cropNextBtn) {
+    cropNextBtn.addEventListener('click', () => {
+        // Save current crop data
+        cropData[currentCropIndex] = { ...cropBoxData };
+        
+        // Load next image
+        if (currentCropIndex < selectedFiles.length - 1) {
+            loadImageForCrop(currentCropIndex + 1);
+        }
+    });
+}
 
-cropFinishBtn.addEventListener('click', async () => {
+if (cropFinishBtn) {
+    cropFinishBtn.addEventListener('click', async () => {
     // Save current crop data
     cropData[currentCropIndex] = { ...cropBoxData };
     
@@ -689,9 +659,10 @@ cropFinishBtn.addEventListener('click', async () => {
     } catch (error) {
         showError(`Error: ${error.message}`);
         hideProgress();
-        processBtn.disabled = false;
+        if (processBtn) processBtn.disabled = false;
     }
-});
+    });
+}
 
 function showProgress() {
     progressContainer.style.display = 'block';
@@ -739,7 +710,8 @@ function hideResults() {
 }
 
 // Download ZIP
-downloadZipBtn.addEventListener('click', () => {
+if (downloadZipBtn) {
+    downloadZipBtn.addEventListener('click', () => {
     if (!processedData) {
         showError('No processed files available for download');
         return;
@@ -789,50 +761,34 @@ downloadZipBtn.addEventListener('click', () => {
     } else {
         showError('No processed files available for download');
     }
-});
-
-// Reset
-resetBtn.addEventListener('click', () => {
-    selectedFiles = [];
-    cropData = [];
-    updateFileList();
-    hideActions();
-    hideResults();
-    hideProgress();
-    hideCropInterface();
-    fileInput.value = '';
-});
-
-// Initialize everything when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        initElements();
-        setupFileUpload();
-        setupDragAndDrop();
-        setupAllEventListeners();
     });
-} else {
-    // DOM is already ready
-    initElements();
-    setupFileUpload();
-    setupDragAndDrop();
-    setupAllEventListeners();
 }
 
-function setupAllEventListeners() {
-    if (!processBtn || !clearBtn || !resetBtn || !downloadZipBtn) {
-        console.error('Some elements not found for event listeners');
-        return;
-    }
-    
-    // Process button
-    processBtn.addEventListener('click', () => {
-    selectedFiles = [];
-    cropData = [];
-    updateFileList();
-    hideActions();
-    hideResults();
-    hideProgress();
-    hideCropInterface();
-    fileInput.value = '';
-});
+// Reset
+if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+        selectedFiles = [];
+        cropData = [];
+        processedData = null;
+        updateFileList();
+        hideActions();
+        hideResults();
+        hideProgress();
+        hideCropInterface();
+        if (fileInput) fileInput.value = '';
+    });
+}
+
+// Clear
+if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+        selectedFiles = [];
+        cropData = [];
+        updateFileList();
+        hideActions();
+        hideResults();
+        hideProgress();
+        hideCropInterface();
+        if (fileInput) fileInput.value = '';
+    });
+}
