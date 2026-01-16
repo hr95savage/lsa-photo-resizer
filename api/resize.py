@@ -124,9 +124,8 @@ def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024, c
 def handler(req):
     from vercel import Response
     
-    # Get method - handle both req.method and req.get('method')
-    method = getattr(req, 'method', None) or req.get('method', 'GET') if hasattr(req, 'get') else 'GET'
-    method = method.upper()
+    # Get method - Vercel Python runtime uses req.method directly
+    method = getattr(req, 'method', 'GET').upper()
     
     if method == 'OPTIONS':
         return Response(
@@ -141,9 +140,13 @@ def handler(req):
     
     if method != 'POST':
         return Response(
-            json.dumps({'error': f'Method not allowed. Received: {method}'}),
+            json.dumps({'error': f'Method not allowed. Received: {method}. Expected: POST'}),
             status=405,
-            headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
+            headers={
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*',
+                'Allow': 'POST, OPTIONS'
+            }
         )
     
     try:
