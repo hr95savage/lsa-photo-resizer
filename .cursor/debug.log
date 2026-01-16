@@ -70,3 +70,47 @@
 {"location":"script.js:87","message":"handleFiles called","data":{"fileCount":1,"fileNames":["a9j7t7es5ql.jpg"]},"timestamp":1768533770373,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
 {"location":"script.js:91","message":"Files added to selectedFiles","data":{"totalFiles":1},"timestamp":1768533770373,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
 {"location":"script.js:95","message":"handleFiles completed successfully","data":{},"timestamp":1768533770374,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"script.js:1","message":"Script loading - checking DOM ready state","data":{"readyState":"loading"},"timestamp":1768533868552,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"script.js:29","message":"DOM elements retrieved","data":{"uploadArea":true,"fileInput":true,"selectFilesBtn":true,"fileList":true,"fileListItems":true},"timestamp":1768533868552,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"script.js:48","message":"Setting up file selection listeners","data":{"selectFilesBtn":true,"fileInput":true},"timestamp":1768533868552,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:51","message":"Adding click listener to selectFilesBtn","data":{},"timestamp":1768533868552,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:67","message":"Adding change listener to fileInput","data":{},"timestamp":1768533868552,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:103","message":"Setting up drag and drop listeners","data":{"uploadArea":true},"timestamp":1768533868552,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:54","message":"selectFilesBtn clicked","data":{"fileInputExists":true},"timestamp":1768533869559,"sessionId":"debug-session","runId":"run1","hypothesisId":"C"}
+{"location":"script.js:58","message":"fileInput.click() called","data":{},"timestamp":1768533869559,"sessionId":"debug-session","runId":"run1","hypothesisId":"C"}
+{"location":"script.js:70","message":"fileInput change event fired","data":{"fileCount":1},"timestamp":1768533872778,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"script.js:87","message":"handleFiles called","data":{"fileCount":1,"fileNames":["a9j7t7es5ql.jpg"]},"timestamp":1768533872779,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"script.js:91","message":"Files added to selectedFiles","data":{"totalFiles":1},"timestamp":1768533872779,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"script.js:95","message":"handleFiles completed successfully","data":{},"timestamp":1768533872796,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"script.js:54","message":"selectFilesBtn clicked","data":{"fileInputExists":true},"timestamp":1768533890991,"sessionId":"debug-session","runId":"run1","hypothesisId":"C"}
+{"location":"script.js:58","message":"fileInput.click() called","data":{},"timestamp":1768533890992,"sessionId":"debug-session","runId":"run1","hypothesisId":"C"}
+{"location":"script.js:70","message":"fileInput change event fired","data":{"fileCount":1},"timestamp":1768533893731,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"script.js:87","message":"handleFiles called","data":{"fileCount":1,"fileNames":["a9j7t7es5ql.jpg"]},"timestamp":1768533893732,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"script.js:91","message":"Files added to selectedFiles","data":{"totalFiles":1},"timestamp":1768533893732,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"script.js:95","message":"handleFiles completed successfully","data":{},"timestamp":1768533893733,"sessionId":"debug-session","runId":"run1","hypothesisId":"D"}
+{"location":"script.js:1","message":"Script loading - checking DOM ready state","data":{"readyState":"loading"},"timestamp":1768534043750,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"script.js:67","message":"Adding change listener to fileInput","data":{},"timestamp":1768534043753,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:29","message":"DOM elements retrieved","data":{"uploadArea":true,"fileInput":true,"selectFilesBtn":true,"fileList":true,"fileListItems":true},"timestamp":1768534043753,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"script.js:48","message":"Setting up file selection listeners","data":{"selectFilesBtn":true,"fileInput":true},"timestamp":1768534043753,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:51","message":"Adding click listener to selectFilesBtn","data":{},"timestamp":1768534043753,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:103","message":"Setting up drag and drop listeners","data":{"uploadArea":true},"timestamp":1768534043753,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:1","message":"Script loading - checking DOM ready state","data":{"readyState":"loading"},"timestamp":1768534045996,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"script.js:29","message":"DOM elements retrieved","data":{"uploadArea":true,"fileInput":true,"selectFilesBtn":true,"fileList":true,"fileListItems":true},"timestamp":1768534045996,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"script.js:48","message":"Setting up file selection listeners","data":{"selectFilesBtn":true,"fileInput":true},"timestamp":1768534045996,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:51","message":"Adding click listener to selectFilesBtn","data":{},"timestamp":1768534045996,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:67","message":"Adding change listener to fileInput","data":{},"timestamp":1768534045997,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:103","message":"Setting up drag and drop listeners","data":{"uploadArea":true},"timestamp":1768534045997,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:1","message":"Script loading - checking DOM ready state","data":{"readyState":"loading"},"timestamp":1768534073240,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"script.js:29","message":"DOM elements retrieved","data":{"uploadArea":true,"fileInput":true,"selectFilesBtn":true,"fileList":true,"fileListItems":true},"timestamp":1768534073240,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"script.js:48","message":"Setting up file selection listeners","data":{"selectFilesBtn":true,"fileInput":true},"timestamp":1768534073241,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:51","message":"Adding click listener to selectFilesBtn","data":{},"timestamp":1768534073241,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:67","message":"Adding change listener to fileInput","data":{},"timestamp":1768534073241,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:103","message":"Setting up drag and drop listeners","data":{"uploadArea":true},"timestamp":1768534073241,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:54","message":"selectFilesBtn clicked","data":{"fileInputExists":true},"timestamp":1768534078255,"sessionId":"debug-session","runId":"run1","hypothesisId":"C"}
+{"location":"script.js:58","message":"fileInput.click() called","data":{},"timestamp":1768534078255,"sessionId":"debug-session","runId":"run1","hypothesisId":"C"}
+{"location":"script.js:1","message":"Script loading - checking DOM ready state","data":{"readyState":"loading"},"timestamp":1768534083208,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"script.js:29","message":"DOM elements retrieved","data":{"uploadArea":true,"fileInput":true,"selectFilesBtn":true,"fileList":true,"fileListItems":true},"timestamp":1768534083209,"sessionId":"debug-session","runId":"run1","hypothesisId":"A"}
+{"location":"script.js:48","message":"Setting up file selection listeners","data":{"selectFilesBtn":true,"fileInput":true},"timestamp":1768534083209,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:51","message":"Adding click listener to selectFilesBtn","data":{},"timestamp":1768534083209,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:67","message":"Adding change listener to fileInput","data":{},"timestamp":1768534083209,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
+{"location":"script.js:103","message":"Setting up drag and drop listeners","data":{"uploadArea":true},"timestamp":1768534083209,"sessionId":"debug-session","runId":"run1","hypothesisId":"B"}
