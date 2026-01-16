@@ -144,6 +144,77 @@ def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024, c
     output.seek(0)
     return output
 
+def optimize_image(image, max_size_bytes):
+    """
+    Optimize image to fit within max_size_bytes while maintaining aspect ratio.
+    Returns optimized image as BytesIO.
+    """
+    # Convert to RGB if necessary
+    if image.mode in ('RGBA', 'LA', 'P'):
+        background = Image.new('RGB', image.size, (255, 255, 255))
+        if image.mode == 'P':
+            image = image.convert('RGBA')
+        if image.mode in ('RGBA', 'LA'):
+            background.paste(image, mask=image.split()[-1] if image.mode == 'RGBA' else None)
+        image = background
+    elif image.mode != 'RGB':
+        image = image.convert('RGB')
+    
+    original_width, original_height = image.size
+    aspect_ratio = original_width / original_height
+    
+    # Start with original size
+    output = io.BytesIO()
+    image.save(output, format='PNG', optimize=True)
+    file_size = len(output.getvalue())
+    
+    # If already under max size, return as is
+    if file_size <= max_size_bytes:
+        output.seek(0)
+        return output
+    
+    # Try quantizing first (less quality loss than resizing)
+    if file_size > max_size_bytes:
+        output = io.BytesIO()
+        quantized = image.quantize(colors=256, method=Image.Quantize.MEDIANCUT)
+        quantized = quantized.convert('RGB')
+        quantized.save(output, format='PNG', optimize=True)
+        file_size = len(output.getvalue())
+        if file_size <= max_size_bytes:
+            output.seek(0)
+            return output
+        image = quantized
+    
+    # If still too large, reduce dimensions while maintaining aspect ratio
+    # Start at 90% and work down
+    factor = 0.9
+    while file_size > max_size_bytes and factor >= 0.3:
+        new_width = int(original_width * factor)
+        new_height = int(original_width * factor / aspect_ratio)
+        resized = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        output = io.BytesIO()
+        resized.save(output, format='PNG', optimize=True)
+        file_size = len(output.getvalue())
+        if file_size <= max_size_bytes:
+            output.seek(0)
+            return output
+        factor -= 0.05
+    
+    # Final attempt: more aggressive quantization
+    if file_size > max_size_bytes:
+        for colors in [128, 64, 32]:
+            quantized = image.quantize(colors=colors, method=Image.Quantize.MEDIANCUT)
+            quantized = quantized.convert('RGB')
+            output = io.BytesIO()
+            quantized.save(output, format='PNG', optimize=True)
+            file_size = len(output.getvalue())
+            if file_size <= max_size_bytes:
+                output.seek(0)
+                return output
+    
+    output.seek(0)
+    return output
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({'status': 'ok'})

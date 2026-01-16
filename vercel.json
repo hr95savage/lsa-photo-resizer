@@ -1,19 +1,25 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "api/resize.py",
-      "use": "@vercel/python"
-    }
-  ],
   "routes": [
     {
       "src": "/api/resize",
-      "dest": "api/resize.py"
+      "dest": "/api/resize.py"
+    },
+    {
+      "src": "/api/optimize",
+      "dest": "/api/optimize.py"
+    },
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*\\.(html|css|js|png|jpg|jpeg|gif|svg|ico|woff|woff2|ttf|eot))",
+      "dest": "/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/$1"
+      "dest": "/index.html"
     }
   ]
 }

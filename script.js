@@ -39,10 +39,58 @@ let dragType = null; // 'box', 'nw', 'ne', 'sw', 'se'
 let imageRect = null; // The actual rendered image area (x, y, width, height in CSS pixels)
 let containerRect = null; // The container dimensions
 
+// Tab elements
+const tabCropper = document.getElementById('tabCropper');
+const tabOptimizer = document.getElementById('tabOptimizer');
+const tabContentCropper = document.getElementById('tabContentCropper');
+const tabContentOptimizer = document.getElementById('tabContentOptimizer');
+
+// Optimizer elements
+const optimizerUploadArea = document.getElementById('optimizerUploadArea');
+const optimizerFileInput = document.getElementById('optimizerFileInput');
+const optimizerSelectFilesBtn = document.getElementById('optimizerSelectFilesBtn');
+const optimizerFileList = document.getElementById('optimizerFileList');
+const optimizerFileListItems = document.getElementById('optimizerFileListItems');
+const optimizerActions = document.getElementById('optimizerActions');
+const optimizeBtn = document.getElementById('optimizeBtn');
+const optimizerClearBtn = document.getElementById('optimizerClearBtn');
+const optimizerProgressContainer = document.getElementById('optimizerProgressContainer');
+const optimizerProgressFill = document.getElementById('optimizerProgressFill');
+const optimizerProgressText = document.getElementById('optimizerProgressText');
+const optimizerResults = document.getElementById('optimizerResults');
+const optimizerResultsInfo = document.getElementById('optimizerResultsInfo');
+const optimizerDownloadZipBtn = document.getElementById('optimizerDownloadZipBtn');
+const optimizerResetBtn = document.getElementById('optimizerResetBtn');
+const optimizerErrorMessage = document.getElementById('optimizerErrorMessage');
+const maxSizeInput = document.getElementById('maxSizeInput');
+
+let optimizerFiles = [];
+let optimizerProcessedData = null;
+
 // Detect API base URL
 const API_BASE = window.location.hostname === 'localhost' 
     ? 'http://localhost:5001' 
     : '/api';
+
+// Tab switching
+if (tabCropper && tabOptimizer) {
+    tabCropper.addEventListener('click', () => switchTab('cropper'));
+    tabOptimizer.addEventListener('click', () => switchTab('optimizer'));
+}
+
+function switchTab(tabName) {
+    if (tabName === 'cropper') {
+        tabCropper.classList.add('active');
+        tabOptimizer.classList.remove('active');
+        tabContentCropper.classList.add('active');
+        tabContentOptimizer.classList.remove('active');
+    } else {
+        tabOptimizer.classList.add('active');
+        tabCropper.classList.remove('active');
+        tabContentOptimizer.classList.add('active');
+        tabContentCropper.classList.remove('active');
+    }
+}
 
 // File selection - with null checks
 if (selectFilesBtn && fileInput) {

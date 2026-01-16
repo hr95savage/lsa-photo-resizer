@@ -120,7 +120,7 @@ def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024, c
     output.seek(0)
     return output
 
-def handler(request):
+def handler_old(request):
     from vercel import Response
     
     # Debug: Log request attributes
@@ -387,7 +387,7 @@ def optimize_image(image, max_size_bytes):
     output.seek(0)
     return output
 
-def optimize_handler(request):
+def handler(request):
     from vercel import Response
     
     method = getattr(request, 'method', 'GET').upper()

@@ -48,6 +48,83 @@ header h1 {
     font-size: 1.1em;
 }
 
+/* Tab Navigation */
+.tabs {
+    display: flex;
+    gap: 10px;
+    margin: 30px 0 20px;
+    border-bottom: 2px solid #333;
+}
+
+.tab-btn {
+    padding: 12px 24px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: #ccc;
+    font-size: 1em;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: -2px;
+}
+
+.tab-btn:hover {
+    color: #fff;
+    background: #111;
+}
+
+.tab-btn.active {
+    color: #fff;
+    border-bottom-color: #fff;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Optimizer Settings */
+.optimizer-settings {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.optimizer-settings label {
+    display: block;
+    color: #fff;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.size-input {
+    width: 150px;
+    padding: 10px;
+    background: #1a1a1a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    color: #fff;
+    font-size: 1em;
+    margin-bottom: 10px;
+}
+
+.size-input:focus {
+    outline: none;
+    border-color: #fff;
+}
+
+.setting-hint {
+    color: #999;
+    font-size: 0.9em;
+    margin-top: 5px;
+}
+
 .upload-area {
     border: 2px dashed #444;
     border-radius: 16px;

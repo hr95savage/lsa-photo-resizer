@@ -11,9 +11,17 @@
         <header>
             <img src="logo.png" alt="SAVAGE Logo" class="logo" id="logo">
             <h1>LSA Photo Resizer</h1>
-            <p class="subtitle">Resize multiple photos to 1080×1080 PNG (under 5MB)</p>
+            <p class="subtitle">Resize and optimize your photos</p>
         </header>
 
+        <!-- Tab Navigation -->
+        <div class="tabs">
+            <button class="tab-btn active" id="tabCropper" data-tab="cropper">Photo Cropper</button>
+            <button class="tab-btn" id="tabOptimizer" data-tab="optimizer">Photo Optimizer</button>
+        </div>
+
+        <!-- Photo Cropper Tab -->
+        <div class="tab-content active" id="tabContentCropper">
         <div class="upload-area" id="uploadArea">
             <div class="upload-content">
                 <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -78,6 +86,59 @@
         </div>
 
         <div class="error-message" id="errorMessage" style="display: none;"></div>
+        </div> <!-- End Photo Cropper Tab -->
+
+        <!-- Photo Optimizer Tab -->
+        <div class="tab-content" id="tabContentOptimizer">
+            <div class="optimizer-settings">
+                <label for="maxSizeInput">Maximum File Size (MB):</label>
+                <input type="number" id="maxSizeInput" min="0.1" max="50" step="0.1" value="5" class="size-input">
+                <p class="setting-hint">Choose the maximum file size for optimized exports</p>
+            </div>
+
+            <div class="upload-area" id="optimizerUploadArea">
+                <div class="upload-content">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    <h2>Drag & Drop your photos here</h2>
+                    <p>or</p>
+                    <button class="btn-primary" id="optimizerSelectFilesBtn">Select Files</button>
+                    <input type="file" id="optimizerFileInput" multiple accept="image/*" style="display: none;">
+                    <p class="file-info">Supports: PNG, JPG, JPEG, GIF, BMP, WEBP, TIFF, HEIC</p>
+                </div>
+            </div>
+
+            <div class="file-list" id="optimizerFileList" style="display: none;">
+                <h3>Selected Files:</h3>
+                <ul id="optimizerFileListItems"></ul>
+            </div>
+
+            <div class="actions" id="optimizerActions" style="display: none;">
+                <button class="btn-primary" id="optimizeBtn">Optimize Images</button>
+                <button class="btn-secondary" id="optimizerClearBtn">Clear</button>
+            </div>
+
+            <div class="progress-container" id="optimizerProgressContainer" style="display: none;">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="optimizerProgressFill"></div>
+                </div>
+                <p class="progress-text" id="optimizerProgressText">Processing...</p>
+            </div>
+
+            <div class="results" id="optimizerResults" style="display: none;">
+                <h3>Optimization Complete!</h3>
+                <div class="results-info" id="optimizerResultsInfo"></div>
+                <div class="results-actions">
+                    <button class="btn-primary" id="optimizerDownloadZipBtn">Download All as ZIP</button>
+                    <button class="btn-secondary" id="optimizerResetBtn">Optimize More</button>
+                </div>
+            </div>
+
+            <div class="error-message" id="optimizerErrorMessage" style="display: none;"></div>
+        </div> <!-- End Photo Optimizer Tab -->
     </div>
 
     <script src="script.js"></script>
