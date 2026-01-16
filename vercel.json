@@ -3,15 +3,10 @@
   "routes": [
     {
       "src": "/api/resize",
-      "dest": "/api/resize.py",
-      "methods": ["GET", "POST", "OPTIONS"]
+      "dest": "/api/resize.py"
     },
     {
-      "src": "/api/(.*)",
-      "dest": "/api/$1"
-    },
-    {
-      "src": "/(.*)",
+      "src": "/(?!api)(.*)",
       "dest": "/$1"
     }
   ]
