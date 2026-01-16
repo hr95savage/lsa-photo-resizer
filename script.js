@@ -209,7 +209,7 @@ function loadImageForCrop(index) {
             if (cropData[index]) {
                 cropBoxData = { ...cropData[index] };
             } else {
-                // Smart Fill: Auto-detect orientation and fill accordingly
+                // Smart Fill with 1:1 aspect ratio: Auto-detect orientation and fill accordingly
                 const targetSize = 1080;
                 const isLandscape = img.width >= img.height;
                 
@@ -222,15 +222,15 @@ function loadImageForCrop(index) {
                     const scaledWidth = img.width * scale;
                     
                     if (scaledWidth >= targetSize) {
-                        // Wide enough - crop width, use full height
+                        // Wide enough - crop width to square, use full height
                         cropWidth = targetSize / scale; // Convert back to original coordinates
                         cropHeight = img.height; // Use full height
                         cropX = (img.width - cropWidth) / 2; // Center horizontally
                         cropY = 0; // Start at top
                     } else {
-                        // Not wide enough - use full width, crop height (shouldn't happen for landscape, but handle it)
+                        // Not wide enough - use full width, crop height to square
                         cropWidth = img.width;
-                        cropHeight = targetSize / scale;
+                        cropHeight = img.width; // Make square
                         cropX = 0;
                         cropY = (img.height - cropHeight) / 2;
                     }
@@ -241,23 +241,24 @@ function loadImageForCrop(index) {
                     const scaledHeight = img.height * scale;
                     
                     if (scaledHeight >= targetSize) {
-                        // Tall enough - crop height, use full width
+                        // Tall enough - crop height to square, use full width
                         cropHeight = targetSize / scale; // Convert back to original coordinates
                         cropWidth = img.width; // Use full width
                         cropX = 0; // Start at left
                         cropY = (img.height - cropHeight) / 2; // Center vertically
                     } else {
-                        // Not tall enough - use full height, crop width (shouldn't happen for portrait, but handle it)
+                        // Not tall enough - use full height, crop width to square
                         cropHeight = img.height;
-                        cropWidth = targetSize / scale;
+                        cropWidth = img.height; // Make square
                         cropX = (img.width - cropWidth) / 2;
                         cropY = 0;
                     }
                 }
                 
-                // Ensure crop fits within image bounds
-                cropWidth = Math.min(cropWidth, img.width);
-                cropHeight = Math.min(cropHeight, img.height);
+                // Ensure crop fits within image bounds and is square
+                const minDimension = Math.min(img.width, img.height);
+                cropWidth = Math.min(cropWidth, minDimension);
+                cropHeight = cropWidth; // Force square
                 cropX = Math.max(0, Math.min(img.width - cropWidth, cropX));
                 cropY = Math.max(0, Math.min(img.height - cropHeight, cropY));
                 
@@ -327,9 +328,10 @@ function setupCropCanvas(img) {
 function updateCropBox() {
     if (!currentImage || !imageRect) return;
     
-    // Ensure crop box size never exceeds image dimensions (in source pixels)
-    cropBoxData.width = Math.min(cropBoxData.width, currentImage.width);
-    cropBoxData.height = Math.min(cropBoxData.height, currentImage.height);
+    // Ensure crop box remains square and doesn't exceed image dimensions (in source pixels)
+    const maxSize = Math.min(currentImage.width, currentImage.height);
+    cropBoxData.width = Math.min(cropBoxData.width, maxSize);
+    cropBoxData.height = cropBoxData.width; // Always maintain 1:1 aspect ratio
     
     // Calculate maximum allowed position (in source pixels)
     const maxX = currentImage.width - cropBoxData.width;
@@ -489,33 +491,43 @@ document.addEventListener('mousemove', (e) => {
         // Move the entire box - allow horizontal and vertical movement
         cropBoxData.x = originalX + deltaX;
         cropBoxData.y = originalY + deltaY;
-    } else if (dragType === 'nw') {
-        // Resize from northwest corner - adjust both width and height
-        cropBoxData.width = originalWidth - deltaX;
-        cropBoxData.height = originalHeight - deltaY;
-        cropBoxData.x = originalX + deltaX;
-        cropBoxData.y = originalY + deltaY;
-    } else if (dragType === 'ne') {
-        // Resize from northeast corner
-        cropBoxData.width = originalWidth + deltaX;
-        cropBoxData.height = originalHeight - deltaY;
-        cropBoxData.y = originalY + deltaY;
-    } else if (dragType === 'sw') {
-        // Resize from southwest corner
-        cropBoxData.width = originalWidth - deltaX;
-        cropBoxData.height = originalHeight + deltaY;
-        cropBoxData.x = originalX + deltaX;
-    } else if (dragType === 'se') {
-        // Resize from southeast corner
-        cropBoxData.width = originalWidth + deltaX;
-        cropBoxData.height = originalHeight + deltaY;
+    } else {
+        // Resize from corner - maintain 1:1 aspect ratio
+        // Use the larger delta to maintain square
+        const delta = Math.max(Math.abs(deltaX), Math.abs(deltaY));
+        const signX = deltaX >= 0 ? 1 : -1;
+        const signY = deltaY >= 0 ? 1 : -1;
+        
+        if (dragType === 'nw') {
+            // Resize from northwest corner
+            cropBoxData.width = originalWidth - (delta * signX);
+            cropBoxData.height = cropBoxData.width; // Lock to square
+            cropBoxData.x = originalX + (originalWidth - cropBoxData.width);
+            cropBoxData.y = originalY + (originalHeight - cropBoxData.height);
+        } else if (dragType === 'ne') {
+            // Resize from northeast corner
+            cropBoxData.width = originalWidth + (delta * signX);
+            cropBoxData.height = cropBoxData.width; // Lock to square
+            cropBoxData.y = originalY + (originalHeight - cropBoxData.height);
+        } else if (dragType === 'sw') {
+            // Resize from southwest corner
+            cropBoxData.width = originalWidth - (delta * signX);
+            cropBoxData.height = cropBoxData.width; // Lock to square
+            cropBoxData.x = originalX + (originalWidth - cropBoxData.width);
+        } else if (dragType === 'se') {
+            // Resize from southeast corner
+            cropBoxData.width = originalWidth + (delta * signX);
+            cropBoxData.height = cropBoxData.width; // Lock to square
+        }
     }
     
     // STRICT: Ensure crop box size never exceeds image dimensions (source pixels)
-    cropBoxData.width = Math.min(cropBoxData.width, currentImage.width);
-    cropBoxData.height = Math.min(cropBoxData.height, currentImage.height);
+    // Also ensure it remains square
+    const maxSize = Math.min(currentImage.width, currentImage.height);
+    cropBoxData.width = Math.min(cropBoxData.width, maxSize);
+    cropBoxData.height = cropBoxData.width; // Always maintain square
     cropBoxData.width = Math.max(1, cropBoxData.width); // Minimum 1px
-    cropBoxData.height = Math.max(1, cropBoxData.height); // Minimum 1px
+    cropBoxData.height = cropBoxData.width; // Keep square
     
     // Calculate maximum allowed position based on current size (source pixels)
     const maxX = currentImage.width - cropBoxData.width;
@@ -533,14 +545,18 @@ document.addEventListener('mousemove', (e) => {
         cropBoxData.y = currentImage.height - cropBoxData.height;
     }
     
-    // One more size check to be absolutely sure (source pixels)
-    if (cropBoxData.width > currentImage.width) {
-        cropBoxData.width = currentImage.width;
-        cropBoxData.x = 0;
-    }
-    if (cropBoxData.height > currentImage.height) {
-        cropBoxData.height = currentImage.height;
-        cropBoxData.y = 0;
+    // One more size check to be absolutely sure (source pixels) - maintain square
+    const maxSize = Math.min(currentImage.width, currentImage.height);
+    if (cropBoxData.width > maxSize) {
+        cropBoxData.width = maxSize;
+        cropBoxData.height = maxSize;
+        // Center if needed
+        if (cropBoxData.x + cropBoxData.width > currentImage.width) {
+            cropBoxData.x = currentImage.width - cropBoxData.width;
+        }
+        if (cropBoxData.y + cropBoxData.height > currentImage.height) {
+            cropBoxData.y = currentImage.height - cropBoxData.height;
+        }
     }
     
     // Update drag start position for next move (in container coordinates)
