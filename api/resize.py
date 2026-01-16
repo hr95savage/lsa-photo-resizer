@@ -124,7 +124,11 @@ def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024, c
 def handler(req):
     from vercel import Response
     
-    if req.method == 'OPTIONS':
+    # Get method - handle both req.method and req.get('method')
+    method = getattr(req, 'method', None) or req.get('method', 'GET') if hasattr(req, 'get') else 'GET'
+    method = method.upper()
+    
+    if method == 'OPTIONS':
         return Response(
             '',
             status=200,
@@ -135,16 +139,22 @@ def handler(req):
             }
         )
     
-    if req.method != 'POST':
+    if method != 'POST':
         return Response(
-            json.dumps({'error': 'Method not allowed'}),
+            json.dumps({'error': f'Method not allowed. Received: {method}'}),
             status=405,
             headers={'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'}
         )
     
     try:
         # Parse multipart form data from request
-        content_type = req.headers.get('content-type', '')
+        # Handle both req.headers dict and req.headers.get()
+        headers = getattr(req, 'headers', {})
+        if hasattr(headers, 'get'):
+            content_type = headers.get('content-type', '') or headers.get('Content-Type', '')
+        else:
+            content_type = str(headers.get('content-type', '') if 'content-type' in headers else headers.get('Content-Type', ''))
+        
         if 'multipart/form-data' not in content_type:
             return Response(
                 json.dumps({'error': 'Content-Type must be multipart/form-data'}),
