@@ -701,7 +701,8 @@ if (cropFinishBtn) {
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             const text = await response.text();
-            throw new Error(`Unexpected response format: ${text.substring(0, 100)}`);
+            console.error('Non-JSON response:', text);
+            throw new Error(`Unexpected response format: ${text.substring(0, 200)}`);
         }
         
         // Parse JSON response
@@ -713,7 +714,12 @@ if (cropFinishBtn) {
         let data;
         try {
             data = JSON.parse(text);
+            // Log debug info if present
+            if (data.debug) {
+                console.log('Debug info from server:', data.debug);
+            }
         } catch (e) {
+            console.error('JSON parse error:', e, 'Response text:', text.substring(0, 500));
             throw new Error(`Invalid JSON response: ${e.message}. Response: ${text.substring(0, 200)}`);
         }
         
