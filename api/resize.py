@@ -121,8 +121,9 @@ def resize_and_compress(image, target_size=(1080, 1080), max_size=5*1024*1024, c
     output.seek(0)
     return output
 
-def handler(req):
+def handler(request):
     from vercel import Response
+    req = request
     
     if req.method == 'OPTIONS':
         return Response(
