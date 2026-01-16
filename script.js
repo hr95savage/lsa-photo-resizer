@@ -684,10 +684,37 @@ if (cropFinishBtn) {
         progressFill.style.width = '70%';
         progressText.textContent = 'Finalizing...';
         
-        const data = await response.json();
-        
+        // Check if response is ok first
         if (!response.ok) {
-            throw new Error(data.error || 'Processing failed');
+            let errorMessage = 'Processing failed';
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.error || errorMessage;
+            } catch (e) {
+                // If we can't parse JSON, use status text
+                errorMessage = response.statusText || `Server error: ${response.status}`;
+            }
+            throw new Error(errorMessage);
+        }
+        
+        // Check if response has content
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            const text = await response.text();
+            throw new Error(`Unexpected response format: ${text.substring(0, 100)}`);
+        }
+        
+        // Parse JSON response
+        const text = await response.text();
+        if (!text || text.trim().length === 0) {
+            throw new Error('Empty response from server');
+        }
+        
+        let data;
+        try {
+            data = JSON.parse(text);
+        } catch (e) {
+            throw new Error(`Invalid JSON response: ${e.message}. Response: ${text.substring(0, 200)}`);
         }
         
         progressFill.style.width = '100%';
