@@ -1,6 +1,3 @@
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:1',message:'Script loading - checking DOM ready state',data:{readyState:document.readyState},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-// #endregion
 const uploadArea = document.getElementById('uploadArea');
 const fileInput = document.getElementById('fileInput');
 const selectFilesBtn = document.getElementById('selectFilesBtn');
@@ -29,9 +26,6 @@ const cropTotal = document.getElementById('cropTotal');
 const cropPrevBtn = document.getElementById('cropPrevBtn');
 const cropNextBtn = document.getElementById('cropNextBtn');
 const cropFinishBtn = document.getElementById('cropFinishBtn');
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:29',message:'DOM elements retrieved',data:{uploadArea:!!uploadArea,fileInput:!!fileInput,selectFilesBtn:!!selectFilesBtn,fileList:!!fileList,fileListItems:!!fileListItems},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-// #endregion
 
 let selectedFiles = [];
 let processedData = null;
@@ -51,54 +45,24 @@ const API_BASE = window.location.hostname === 'localhost'
     : '/api';
 
 // File selection - with null checks
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:48',message:'Setting up file selection listeners',data:{selectFilesBtn:!!selectFilesBtn,fileInput:!!fileInput},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-// #endregion
 if (selectFilesBtn && fileInput) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:51',message:'Adding click listener to selectFilesBtn',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     selectFilesBtn.addEventListener('click', (e) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:54',message:'selectFilesBtn clicked',data:{fileInputExists:!!fileInput},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-        // #endregion
         try {
             fileInput.click();
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:58',message:'fileInput.click() called',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
         } catch (err) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:61',message:'Error calling fileInput.click()',data:{error:err.message,stack:err.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
         }
     });
 
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:67',message:'Adding change listener to fileInput',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     fileInput.addEventListener('change', (e) => {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:70',message:'fileInput change event fired',data:{fileCount:e.target.files?e.target.files.length:0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
         try {
             handleFiles(Array.from(e.target.files));
         } catch (err) {
-            // #region agent log
-            fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:75',message:'Error in handleFiles',data:{error:err.message,stack:err.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-            // #endregion
         }
     });
 } else {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:80',message:'selectFilesBtn or fileInput is null - listeners NOT attached',data:{selectFilesBtn:!!selectFilesBtn,fileInput:!!fileInput},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
 }
 
 // Drag and drop - with null checks
-// #region agent log
-fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:103',message:'Setting up drag and drop listeners',data:{uploadArea:!!uploadArea},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
-// #endregion
 if (uploadArea) {
     uploadArea.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -112,37 +76,19 @@ if (uploadArea) {
     uploadArea.addEventListener('drop', (e) => {
         e.preventDefault();
         uploadArea.classList.remove('dragover');
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:115',message:'Files dropped on uploadArea',data:{fileCount:e.dataTransfer.files.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
         const files = Array.from(e.dataTransfer.files).filter(file => file.type.startsWith('image/'));
         handleFiles(files);
     });
 } else {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:121',message:'uploadArea is null - drag listeners NOT attached',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
 }
 
 function handleFiles(files) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:87',message:'handleFiles called',data:{fileCount:files.length,fileNames:files.map(f=>f.name)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-    // #endregion
     try {
         selectedFiles = [...selectedFiles, ...files];
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:91',message:'Files added to selectedFiles',data:{totalFiles:selectedFiles.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
         updateFileList();
         showActions();
         hideError();
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:95',message:'handleFiles completed successfully',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
     } catch (err) {
-        // #region agent log
-        fetch('http://127.0.0.1:7242/ingest/e19e0d82-3c61-474c-8c5f-8aa0e0976387',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:98',message:'Error in handleFiles execution',data:{error:err.message,stack:err.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
-        // #endregion
         throw err;
     }
 }
