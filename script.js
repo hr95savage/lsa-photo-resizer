@@ -47,15 +47,18 @@ const API_BASE = window.location.hostname === 'localhost'
 // File selection
 selectFilesBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+    e.preventDefault();
     fileInput.click();
 });
 
-// Make entire upload area clickable
+// Make entire upload area clickable (but not when clicking the button)
 uploadArea.addEventListener('click', (e) => {
-    // Only trigger if clicking the area itself, not a child element
-    if (e.target === uploadArea || e.target.closest('.upload-content')) {
-        fileInput.click();
+    // Don't trigger if clicking the button (it has its own handler)
+    if (e.target === selectFilesBtn || e.target.closest('#selectFilesBtn')) {
+        return;
     }
+    // Trigger file input when clicking anywhere else in the upload area
+    fileInput.click();
 });
 
 fileInput.addEventListener('change', (e) => {
