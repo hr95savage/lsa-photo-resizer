@@ -36,6 +36,8 @@ let cropBoxData = { x: 0, y: 0, width: 1080, height: 1080 };
 let isDragging = false;
 let dragStart = { x: 0, y: 0 };
 let dragType = null; // 'box', 'nw', 'ne', 'sw', 'se'
+let imageRect = null; // The actual rendered image area (x, y, width, height in CSS pixels)
+let containerRect = null; // The container dimensions
 
 // Detect API base URL
 const API_BASE = window.location.hostname === 'localhost' 
@@ -187,6 +189,22 @@ function loadImageForCrop(index) {
             currentImage = img;
             setupCropCanvas(img);
             
+            // Recalculate imageRect after a brief delay to ensure layout is complete
+            setTimeout(() => {
+                const container = cropCanvas.parentElement;
+                const containerBounds = container.getBoundingClientRect();
+                const canvasBounds = cropCanvas.getBoundingClientRect();
+                
+                imageRect = {
+                    x: 0,
+                    y: 0,
+                    width: canvasBounds.width,
+                    height: canvasBounds.height
+                };
+                
+                updateCropBox();
+            }, 10);
+            
             // Load existing crop data if available
             if (cropData[index]) {
                 cropBoxData = { ...cropData[index] };
@@ -280,24 +298,59 @@ function setupCropCanvas(img) {
     // Ensure overlay matches canvas size exactly
     cropOverlay.style.width = cropCanvas.width + 'px';
     cropOverlay.style.height = cropCanvas.height + 'px';
+    
+    // Calculate the actual image content rect (where image is rendered)
+    // Since we draw the image to fill the entire canvas, imageRect = canvas rect
+    // But we need to account for any CSS scaling or container padding
+    // Force a reflow to get actual rendered dimensions
+    void container.offsetHeight;
+    
+    const containerBounds = container.getBoundingClientRect();
+    const canvasBounds = cropCanvas.getBoundingClientRect();
+    
+    // The imageRect is the actual displayed canvas area
+    // In our case, canvas fills container, so imageRect = canvas bounds relative to container
+    containerRect = {
+        width: containerBounds.width,
+        height: containerBounds.height,
+        padding: 10 // From CSS padding
+    };
+    
+    // Image is drawn to fill the entire canvas, so imageRect starts at (0, 0) relative to container
+    // and has the size of the canvas (accounting for any CSS scaling)
+    imageRect = {
+        x: 0,
+        y: 0,
+        width: canvasBounds.width,
+        height: canvasBounds.height
+    };
+    
+    // If canvas is scaled by CSS, adjust imageRect
+    const canvasScaleX = canvasBounds.width / cropCanvas.width;
+    const canvasScaleY = canvasBounds.height / cropCanvas.height;
+    
+    // For now, we ensure canvas matches container, so scale should be 1:1
+    // But we'll use the actual rendered dimensions to be safe
+    imageRect.width = canvasBounds.width;
+    imageRect.height = canvasBounds.height;
 }
 
 function updateCropBox() {
-    if (!currentImage) return;
+    if (!currentImage || !imageRect) return;
     
-    // Ensure crop box size never exceeds image dimensions
+    // Ensure crop box size never exceeds image dimensions (in source pixels)
     cropBoxData.width = Math.min(cropBoxData.width, currentImage.width);
     cropBoxData.height = Math.min(cropBoxData.height, currentImage.height);
     
-    // Calculate maximum allowed position
+    // Calculate maximum allowed position (in source pixels)
     const maxX = currentImage.width - cropBoxData.width;
     const maxY = currentImage.height - cropBoxData.height;
     
-    // Clamp position to ensure entire box stays within image
+    // Clamp position to ensure entire box stays within image (source pixels)
     cropBoxData.x = Math.max(0, Math.min(maxX, cropBoxData.x));
     cropBoxData.y = Math.max(0, Math.min(maxY, cropBoxData.y));
     
-    // Final validation: ensure edges don't exceed image boundaries
+    // Final validation: ensure edges don't exceed image boundaries (source pixels)
     if (cropBoxData.x + cropBoxData.width > currentImage.width) {
         cropBoxData.x = Math.max(0, currentImage.width - cropBoxData.width);
     }
@@ -305,7 +358,7 @@ function updateCropBox() {
         cropBoxData.y = Math.max(0, currentImage.height - cropBoxData.height);
     }
     
-    // Ensure crop box doesn't exceed image dimensions
+    // Ensure crop box doesn't exceed image dimensions (source pixels)
     if (cropBoxData.width > currentImage.width) {
         cropBoxData.width = currentImage.width;
         cropBoxData.x = 0;
@@ -315,44 +368,59 @@ function updateCropBox() {
         cropBoxData.y = 0;
     }
     
-    const scale = cropCanvas.width / currentImage.width;
+    // Convert from source pixels to CSS pixels (UI space)
+    // Scale from original image to canvas
+    const scale = imageRect.width / currentImage.width;
+    
+    // Calculate crop box position in CSS pixels, relative to imageRect
     const boxX = cropBoxData.x * scale;
     const boxY = cropBoxData.y * scale;
     const boxWidth = cropBoxData.width * scale;
     const boxHeight = cropBoxData.height * scale;
     
-    // Round to avoid sub-pixel rendering issues
-    cropBox.style.left = Math.round(boxX) + 'px';
-    cropBox.style.top = Math.round(boxY) + 'px';
-    cropBox.style.width = Math.round(boxWidth) + 'px';
-    cropBox.style.height = Math.round(boxHeight) + 'px';
+    // Clamp to imageRect bounds (in CSS pixels)
+    const clampedX = Math.max(0, Math.min(imageRect.width - boxWidth, boxX));
+    const clampedY = Math.max(0, Math.min(imageRect.height - boxHeight, boxY));
+    const clampedWidth = Math.min(boxWidth, imageRect.width - clampedX);
+    const clampedHeight = Math.min(boxHeight, imageRect.height - clampedY);
+    
+    // Position crop box relative to container (imageRect is at 0,0 relative to container)
+    cropBox.style.left = Math.round(imageRect.x + clampedX) + 'px';
+    cropBox.style.top = Math.round(imageRect.y + clampedY) + 'px';
+    cropBox.style.width = Math.round(clampedWidth) + 'px';
+    cropBox.style.height = Math.round(clampedHeight) + 'px';
     
     // Update overlay
     updateOverlay();
 }
 
 function updateOverlay() {
-    if (!currentImage) return;
+    if (!currentImage || !imageRect) return;
     
-    // Ensure overlay size matches canvas exactly
-    cropOverlay.style.width = cropCanvas.width + 'px';
-    cropOverlay.style.height = cropCanvas.height + 'px';
+    // Overlay should only cover the imageRect area, not padding
+    cropOverlay.style.width = imageRect.width + 'px';
+    cropOverlay.style.height = imageRect.height + 'px';
+    cropOverlay.style.left = imageRect.x + 'px';
+    cropOverlay.style.top = imageRect.y + 'px';
     
-    const scale = cropCanvas.width / currentImage.width;
-    const boxX = Math.round(cropBoxData.x * scale);
-    const boxY = Math.round(cropBoxData.y * scale);
-    const boxWidth = Math.round(cropBoxData.width * scale);
-    const boxHeight = Math.round(cropBoxData.height * scale);
+    // Convert crop box from source pixels to CSS pixels
+    const scale = imageRect.width / currentImage.width;
+    const boxX = cropBoxData.x * scale;
+    const boxY = cropBoxData.y * scale;
+    const boxWidth = cropBoxData.width * scale;
+    const boxHeight = cropBoxData.height * scale;
     
-    // Create overlay mask using exact pixel values converted to percentages
-    const canvasWidth = cropCanvas.width;
-    const canvasHeight = cropCanvas.height;
+    // Clamp to imageRect bounds
+    const clampedX = Math.max(0, Math.min(imageRect.width - boxWidth, boxX));
+    const clampedY = Math.max(0, Math.min(imageRect.height - boxHeight, boxY));
+    const clampedWidth = Math.min(boxWidth, imageRect.width - clampedX);
+    const clampedHeight = Math.min(boxHeight, imageRect.height - clampedY);
     
-    // Calculate percentages with precision
-    const left = (boxX / canvasWidth) * 100;
-    const top = (boxY / canvasHeight) * 100;
-    const right = ((boxX + boxWidth) / canvasWidth) * 100;
-    const bottom = ((boxY + boxHeight) / canvasHeight) * 100;
+    // Create overlay mask using percentages relative to imageRect
+    const left = (clampedX / imageRect.width) * 100;
+    const top = (clampedY / imageRect.height) * 100;
+    const right = ((clampedX + clampedWidth) / imageRect.width) * 100;
+    const bottom = ((clampedY + clampedHeight) / imageRect.height) * 100;
     
     cropOverlay.style.clipPath = `polygon(
         0% 0%,
@@ -374,9 +442,13 @@ cropBox.addEventListener('mousedown', (e) => {
     e.stopPropagation();
     isDragging = true;
     
-    const canvasRect = cropCanvas.getBoundingClientRect();
-    dragStart.x = e.clientX - canvasRect.left;
-    dragStart.y = e.clientY - canvasRect.top;
+    // Get container rect for coordinate conversion
+    const container = cropCanvas.parentElement;
+    const containerRect = container.getBoundingClientRect();
+    
+    // Convert mouse position to container-relative coordinates
+    dragStart.x = e.clientX - containerRect.left;
+    dragStart.y = e.clientY - containerRect.top;
     
     const rect = cropBox.getBoundingClientRect();
     const handleSize = 20;
@@ -396,17 +468,29 @@ cropBox.addEventListener('mousedown', (e) => {
 });
 
 document.addEventListener('mousemove', (e) => {
-    if (!isDragging || !currentImage) return;
+    if (!isDragging || !currentImage || !imageRect) return;
     
-    const canvasRect = cropCanvas.getBoundingClientRect();
-    const currentX = e.clientX - canvasRect.left;
-    const currentY = e.clientY - canvasRect.top;
+    // Get container rect for coordinate conversion
+    const container = cropCanvas.parentElement;
+    const containerRect = container.getBoundingClientRect();
     
-    const scale = cropCanvas.width / currentImage.width;
-    const deltaX = (currentX - dragStart.x) / scale;
-    const deltaY = (currentY - dragStart.y) / scale;
+    // Convert mouse position to container-relative coordinates
+    const currentX = e.clientX - containerRect.left;
+    const currentY = e.clientY - containerRect.top;
     
-    // Store original values for bounds checking
+    // Convert from CSS pixels (container space) to source pixels (image space)
+    // First, convert to imageRect-relative coordinates
+    const imageX = currentX - imageRect.x;
+    const imageY = currentY - imageRect.y;
+    const startImageX = dragStart.x - imageRect.x;
+    const startImageY = dragStart.y - imageRect.y;
+    
+    // Scale from CSS pixels to source pixels
+    const scale = currentImage.width / imageRect.width;
+    const deltaX = (imageX - startImageX) * scale;
+    const deltaY = (imageY - startImageY) * scale;
+    
+    // Store original values for bounds checking (in source pixels)
     const originalX = cropBoxData.x;
     const originalY = cropBoxData.y;
     const originalWidth = cropBoxData.width;
@@ -438,21 +522,21 @@ document.addEventListener('mousemove', (e) => {
         cropBoxData.height = originalHeight + deltaY;
     }
     
-    // STRICT: Ensure crop box size never exceeds image dimensions
+    // STRICT: Ensure crop box size never exceeds image dimensions (source pixels)
     cropBoxData.width = Math.min(cropBoxData.width, currentImage.width);
     cropBoxData.height = Math.min(cropBoxData.height, currentImage.height);
     cropBoxData.width = Math.max(1, cropBoxData.width); // Minimum 1px
     cropBoxData.height = Math.max(1, cropBoxData.height); // Minimum 1px
     
-    // Calculate maximum allowed position based on current size
+    // Calculate maximum allowed position based on current size (source pixels)
     const maxX = currentImage.width - cropBoxData.width;
     const maxY = currentImage.height - cropBoxData.height;
     
-    // Clamp position to ensure entire box stays within image
+    // Clamp position to ensure entire box stays within image (source pixels)
     cropBoxData.x = Math.max(0, Math.min(maxX, cropBoxData.x));
     cropBoxData.y = Math.max(0, Math.min(maxY, cropBoxData.y));
     
-    // Final validation: ensure right and bottom edges don't exceed image
+    // Final validation: ensure right and bottom edges don't exceed image (source pixels)
     if (cropBoxData.x + cropBoxData.width > currentImage.width) {
         cropBoxData.x = currentImage.width - cropBoxData.width;
     }
@@ -460,19 +544,17 @@ document.addEventListener('mousemove', (e) => {
         cropBoxData.y = currentImage.height - cropBoxData.height;
     }
     
-    // One more size check to be absolutely sure
+    // One more size check to be absolutely sure (source pixels)
     if (cropBoxData.width > currentImage.width) {
         cropBoxData.width = currentImage.width;
-        cropBoxData.height = currentImage.width;
         cropBoxData.x = 0;
     }
     if (cropBoxData.height > currentImage.height) {
         cropBoxData.height = currentImage.height;
-        cropBoxData.width = currentImage.height;
         cropBoxData.y = 0;
     }
     
-    // Update drag start position for next move
+    // Update drag start position for next move (in container coordinates)
     dragStart.x = currentX;
     dragStart.y = currentY;
     
