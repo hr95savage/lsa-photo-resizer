@@ -284,14 +284,17 @@ header h1 {
 .crop-image-container {
     position: relative;
     display: inline-block;
-    background: #000;
+    background: transparent;
     border-radius: 8px;
+    overflow: hidden;
 }
 
 #cropCanvas {
     display: block;
     max-width: 100%;
     height: auto;
+    background: #000;
+    border-radius: 8px;
 }
 
 .crop-overlay {
